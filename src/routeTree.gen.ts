@@ -9,8 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VulnerableRouteImport } from './routes/vulnerable'
+import { Route as SecureRouteImport } from './routes/secure'
+import { Route as LabRouteImport } from './routes/lab'
+import { Route as DefenseRouteImport } from './routes/defense'
 import { Route as IndexRouteImport } from './routes/index'
 
+const VulnerableRoute = VulnerableRouteImport.update({
+  id: '/vulnerable',
+  path: '/vulnerable',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecureRoute = SecureRouteImport.update({
+  id: '/secure',
+  path: '/secure',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LabRoute = LabRouteImport.update({
+  id: '/lab',
+  path: '/lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DefenseRoute = DefenseRouteImport.update({
+  id: '/defense',
+  path: '/defense',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +43,72 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/defense': typeof DefenseRoute
+  '/lab': typeof LabRoute
+  '/secure': typeof SecureRoute
+  '/vulnerable': typeof VulnerableRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/defense': typeof DefenseRoute
+  '/lab': typeof LabRoute
+  '/secure': typeof SecureRoute
+  '/vulnerable': typeof VulnerableRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/defense': typeof DefenseRoute
+  '/lab': typeof LabRoute
+  '/secure': typeof SecureRoute
+  '/vulnerable': typeof VulnerableRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/defense' | '/lab' | '/secure' | '/vulnerable'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/defense' | '/lab' | '/secure' | '/vulnerable'
+  id: '__root__' | '/' | '/defense' | '/lab' | '/secure' | '/vulnerable'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DefenseRoute: typeof DefenseRoute
+  LabRoute: typeof LabRoute
+  SecureRoute: typeof SecureRoute
+  VulnerableRoute: typeof VulnerableRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/vulnerable': {
+      id: '/vulnerable'
+      path: '/vulnerable'
+      fullPath: '/vulnerable'
+      preLoaderRoute: typeof VulnerableRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/secure': {
+      id: '/secure'
+      path: '/secure'
+      fullPath: '/secure'
+      preLoaderRoute: typeof SecureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lab': {
+      id: '/lab'
+      path: '/lab'
+      fullPath: '/lab'
+      preLoaderRoute: typeof LabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/defense': {
+      id: '/defense'
+      path: '/defense'
+      fullPath: '/defense'
+      preLoaderRoute: typeof DefenseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,17 +121,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DefenseRoute: DefenseRoute,
+  LabRoute: LabRoute,
+  SecureRoute: SecureRoute,
+  VulnerableRoute: VulnerableRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
