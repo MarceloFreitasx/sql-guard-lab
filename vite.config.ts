@@ -6,10 +6,28 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+const isGitHubPages = process.env.GITHUB_PAGES === "true";
+const repoName = process.env.GITHUB_REPOSITORY?.split("/")[1] ?? "sql-guard-lab";
+const repoBasePath = `/${repoName}`;
+
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+    router: isGitHubPages ? { basepath: repoBasePath } : {},
+    prerender: {
+      enabled: isGitHubPages,
+      crawlLinks: true,
+      autoStaticPathsDiscovery: true,
+    },
+    spa: {
+      enabled: isGitHubPages,
+    },
   },
+  vite: isGitHubPages
+    ? {
+        base: `${repoBasePath}/`,
+      }
+    : {},
 });
