@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
       - name: Build static site
         run: bun run build
         env:
@@ -34,6 +37,13 @@ jobs:
 
       - name: Prepare GitHub Pages output
         run: bash scripts/prepare-github-pages.sh dist/client
+
+      - name: Verify static output
+        run: |
+          test -f dist/client/index.html
+          test -f dist/client/404.html
+          ls -la dist/client
+          ls -la dist/client/assets | head
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -49,4 +59,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
