@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WalkthroughRouteImport } from './routes/walkthrough'
 import { Route as VulnerableRouteImport } from './routes/vulnerable'
 import { Route as SecureRouteImport } from './routes/secure'
 import { Route as LabRouteImport } from './routes/lab'
@@ -16,6 +17,11 @@ import { Route as DefenseRouteImport } from './routes/defense'
 import { Route as AttacksRouteImport } from './routes/attacks'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WalkthroughRoute = WalkthroughRouteImport.update({
+  id: '/walkthrough',
+  path: '/walkthrough',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VulnerableRoute = VulnerableRouteImport.update({
   id: '/vulnerable',
   path: '/vulnerable',
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/lab': typeof LabRoute
   '/secure': typeof SecureRoute
   '/vulnerable': typeof VulnerableRoute
+  '/walkthrough': typeof WalkthroughRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/lab': typeof LabRoute
   '/secure': typeof SecureRoute
   '/vulnerable': typeof VulnerableRoute
+  '/walkthrough': typeof WalkthroughRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,12 +79,27 @@ export interface FileRoutesById {
   '/lab': typeof LabRoute
   '/secure': typeof SecureRoute
   '/vulnerable': typeof VulnerableRoute
+  '/walkthrough': typeof WalkthroughRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/attacks' | '/defense' | '/lab' | '/secure' | '/vulnerable'
+  fullPaths:
+    | '/'
+    | '/attacks'
+    | '/defense'
+    | '/lab'
+    | '/secure'
+    | '/vulnerable'
+    | '/walkthrough'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/attacks' | '/defense' | '/lab' | '/secure' | '/vulnerable'
+  to:
+    | '/'
+    | '/attacks'
+    | '/defense'
+    | '/lab'
+    | '/secure'
+    | '/vulnerable'
+    | '/walkthrough'
   id:
     | '__root__'
     | '/'
@@ -85,6 +108,7 @@ export interface FileRouteTypes {
     | '/lab'
     | '/secure'
     | '/vulnerable'
+    | '/walkthrough'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -94,10 +118,18 @@ export interface RootRouteChildren {
   LabRoute: typeof LabRoute
   SecureRoute: typeof SecureRoute
   VulnerableRoute: typeof VulnerableRoute
+  WalkthroughRoute: typeof WalkthroughRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/walkthrough': {
+      id: '/walkthrough'
+      path: '/walkthrough'
+      fullPath: '/walkthrough'
+      preLoaderRoute: typeof WalkthroughRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vulnerable': {
       id: '/vulnerable'
       path: '/vulnerable'
@@ -150,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   LabRoute: LabRoute,
   SecureRoute: SecureRoute,
   VulnerableRoute: VulnerableRoute,
+  WalkthroughRoute: WalkthroughRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

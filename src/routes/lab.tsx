@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Zap, Terminal as TermIcon, ShieldAlert, ShieldCheck } from "lucide-react";
+import { Zap, Terminal as TermIcon, ShieldAlert, ShieldCheck, ListOrdered } from "lucide-react";
 import {
   ATTACK_CATEGORIES,
   applyPayloadToFields,
@@ -27,7 +27,11 @@ export const Route = createFileRoute("/lab")({
   head: () => ({
     meta: [
       { title: "Attack Lab — SQLGuard" },
-      { name: "description", content: "Interactive SQL injection playground with payload library and live terminal output." },
+      {
+        name: "description",
+        content:
+          "Interactive SQL injection playground with payload library and live terminal output.",
+      },
     ],
   }),
   component: LabPage,
@@ -41,6 +45,7 @@ function LabPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<AttackCategory | "all">("all");
+  const [lastPayloadId, setLastPayloadId] = useState<string | null>(payloadId ?? null);
   const [log, setLog] = useState<LogLine[]>([
     { kind: "muted", text: "// Attack lab ready. Pick a payload or write your own." },
   ]);
@@ -58,7 +63,10 @@ function LabPage() {
     setCategoryFilter(payload.category);
     setLog((prev) => [
       ...prev,
-      { kind: "info", text: `→ Loaded payload: ${payload.name} (${getCategoryLabel(payload.category)})` },
+      {
+        kind: "info",
+        text: `→ Loaded payload: ${payload.name} (${getCategoryLabel(payload.category)})`,
+      },
     ]);
   }, [payloadId]);
 
@@ -68,7 +76,9 @@ function LabPage() {
   const fire = () => {
     const isVuln = mode === "vulnerable";
     const query = isVuln ? buildVulnerableQuery(username, password) : buildSecureQuery();
-    const res = isVuln ? simulateVulnerableLogin(username, password) : simulateSecureLogin(username, password);
+    const res = isVuln
+      ? simulateVulnerableLogin(username, password)
+      : simulateSecureLogin(username, password);
 
     const lines: LogLine[] = [
       { kind: "info", text: `→ Mode: ${isVuln ? "VULNERABLE" : "SECURE"}` },
@@ -81,11 +91,17 @@ function LabPage() {
       { kind: "info", text: `  ${query}` },
     );
     if (!isVuln) {
-      lines.push({ kind: "muted", text: `→ Bound params: username=${JSON.stringify(username)}, password=${JSON.stringify(password)}` });
+      lines.push({
+        kind: "muted",
+        text: `→ Bound params: username=${JSON.stringify(username)}, password=${JSON.stringify(password)}`,
+      });
     }
     lines.push({ kind: "muted", text: `→ Executing...` });
     if (res.granted) {
-      lines.push({ kind: "err", text: `→ Result: ACCESS GRANTED — logged in as "${res.matchedUser}"` });
+      lines.push({
+        kind: "err",
+        text: `→ Result: ACCESS GRANTED — logged in as "${res.matchedUser}"`,
+      });
     } else {
       lines.push({ kind: "ok", text: `→ Result: ACCESS DENIED` });
     }
@@ -112,6 +128,7 @@ function LabPage() {
     const fields = applyPayloadToFields(payload);
     setUsername(fields.username);
     setPassword(fields.password);
+    setLastPayloadId(id);
   };
 
   return (
@@ -120,26 +137,47 @@ function LabPage() {
         <div>
           <h1 className="font-mono text-3xl font-bold md:text-4xl">SQL Injection Lab</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Fire payloads at the simulated backend. Compare vulnerable vs secure behavior in real time.
+            Fire payloads at the simulated backend. Compare vulnerable vs secure behavior in real
+            time.
           </p>
         </div>
         <div className="flex items-center gap-1 rounded-full border border-[#30363d] bg-[#161b22] p-1">
-          <ModeBtn active={mode === "vulnerable"} onClick={() => setMode("vulnerable")} tone="red" icon={ShieldAlert} label="Vulnerable" />
-          <ModeBtn active={mode === "secure"} onClick={() => setMode("secure")} tone="green" icon={ShieldCheck} label="Secure" />
+          <ModeBtn
+            active={mode === "vulnerable"}
+            onClick={() => setMode("vulnerable")}
+            tone="red"
+            icon={ShieldAlert}
+            label="Vulnerable"
+          />
+          <ModeBtn
+            active={mode === "secure"}
+            onClick={() => setMode("secure")}
+            tone="green"
+            icon={ShieldCheck}
+            label="Secure"
+          />
         </div>
       </header>
 
       <div className="mt-3 flex flex-wrap gap-3">
         <div className="inline-flex gap-3 rounded-md border border-[#30363d] bg-[#161b22] px-3 py-1.5 font-mono text-xs">
-          <span className="text-muted-foreground">Attacks attempted: <span className="text-white">{attempts}</span></span>
+          <span className="text-muted-foreground">
+            Attacks attempted: <span className="text-white">{attempts}</span>
+          </span>
           <span className="text-muted-foreground">|</span>
-          <span className="text-muted-foreground">Blocked by Secure Mode: <span className="text-[color:var(--green-neon)]">{blocked}</span></span>
+          <span className="text-muted-foreground">
+            Blocked by Secure Mode:{" "}
+            <span className="text-[color:var(--green-neon)]">{blocked}</span>
+          </span>
         </div>
         {ATTACK_CATEGORIES.map((cat) => {
           const count = categoryCounts[cat.id] ?? 0;
           if (count === 0) return null;
           return (
-            <span key={cat.id} className="rounded-md border border-[#30363d] bg-[#161b22] px-2 py-1 font-mono text-[10px] text-muted-foreground">
+            <span
+              key={cat.id}
+              className="rounded-md border border-[#30363d] bg-[#161b22] px-2 py-1 font-mono text-[10px] text-muted-foreground"
+            >
               {cat.label}: <span className="text-[color:var(--cyan-neon)]">{count}</span>
             </span>
           );
@@ -148,9 +186,15 @@ function LabPage() {
 
       <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-12">
         <div className="space-y-2 lg:col-span-3">
-          <h3 className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">Payload library</h3>
+          <h3 className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Payload library
+          </h3>
           <div className="flex flex-wrap gap-1">
-            <FilterChip active={categoryFilter === "all"} onClick={() => setCategoryFilter("all")} label="All" />
+            <FilterChip
+              active={categoryFilter === "all"}
+              onClick={() => setCategoryFilter("all")}
+              label="All"
+            />
             {ATTACK_CATEGORIES.map((cat) => (
               <FilterChip
                 key={cat.id}
@@ -173,7 +217,9 @@ function LabPage() {
                     {getCategoryLabel(p.category)}
                   </span>
                 </div>
-                <div className="mt-1 break-all font-mono text-xs text-[color:var(--cyan-neon)]">{p.payload}</div>
+                <div className="mt-1 break-all font-mono text-xs text-[color:var(--cyan-neon)]">
+                  {p.payload}
+                </div>
                 <div className="mt-1 text-xs text-muted-foreground">{p.desc}</div>
               </button>
             ))}
@@ -181,7 +227,9 @@ function LabPage() {
         </div>
 
         <div className="space-y-4 lg:col-span-4">
-          <h3 className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">Input</h3>
+          <h3 className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Input
+          </h3>
           <div className="rounded-xl border border-[#30363d] bg-[#161b22] p-5">
             <Input label="Username" value={username} onChange={setUsername} />
             <div className="h-3" />
@@ -205,14 +253,19 @@ function LabPage() {
         </div>
 
         <div className="lg:col-span-5">
-          <h3 className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">Output</h3>
+          <h3 className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Output
+          </h3>
           <div className="mt-2 overflow-hidden rounded-xl border border-[#30363d] bg-black">
             <div className="flex items-center justify-between border-b border-[#30363d] bg-[#161b22] px-3 py-1.5">
               <div className="flex items-center gap-2">
                 <TermIcon className="h-3 w-3 text-[color:var(--green-neon)]" />
                 <span className="font-mono text-xs text-muted-foreground">sqlguard@lab:~$</span>
               </div>
-              <button onClick={() => setLog([{ kind: "muted", text: "// cleared" }])} className="text-xs text-muted-foreground hover:text-white">
+              <button
+                onClick={() => setLog([{ kind: "muted", text: "// cleared" }])}
+                className="text-xs text-muted-foreground hover:text-white"
+              >
                 clear
               </button>
             </div>
@@ -240,13 +293,47 @@ function LabPage() {
               </div>
             </div>
           </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-[#30363d] bg-[#161b22] px-3 py-2 font-mono text-[11px]">
+            <span className="uppercase tracking-wider text-muted-foreground">Legend:</span>
+            <LegendDot color="var(--cyan-neon)" label="info / step" />
+            <LegendDot color="var(--red-neon)" label="access granted (attack worked)" />
+            <LegendDot color="var(--green-neon)" label="access denied (blocked)" />
+            <LegendDot color="var(--muted-foreground)" label="details" />
+          </div>
+
+          <Link
+            to="/walkthrough"
+            search={lastPayloadId ? { payload: lastPayloadId } : {}}
+            className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--cyan-neon)] hover:underline"
+          >
+            <ListOrdered className="h-3.5 w-3.5" />
+            Not sure what happened? Replay it step-by-step
+          </Link>
         </div>
       </div>
     </div>
   );
 }
 
-function FilterChip({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+      <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+      {label}
+    </span>
+  );
+}
+
+function FilterChip({
+  active,
+  onClick,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+}) {
   return (
     <button
       onClick={onClick}
@@ -261,10 +348,20 @@ function FilterChip({ active, onClick, label }: { active: boolean; onClick: () =
   );
 }
 
-function Input({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function Input({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</label>
+      <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </label>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -274,7 +371,19 @@ function Input({ label, value, onChange }: { label: string; value: string; onCha
   );
 }
 
-function ModeBtn({ active, onClick, tone, icon: Icon, label }: { active: boolean; onClick: () => void; tone: "red" | "green"; icon: { className?: string }; label: string }) {
+function ModeBtn({
+  active,
+  onClick,
+  tone,
+  icon: Icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  tone: "red" | "green";
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
   const color = tone === "red" ? "var(--red-neon)" : "var(--green-neon)";
   return (
     <button

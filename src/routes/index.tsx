@@ -1,14 +1,30 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowRight, ShieldAlert, Shield, Database, Code2, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  ShieldAlert,
+  Shield,
+  Database,
+  Code2,
+  Zap,
+  ListOrdered,
+  BookOpen,
+} from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "SQLGuard — Understanding SQL Injection from Attack to Defense" },
-      { name: "description", content: "Interactive educational platform: attack a vulnerable login, study why it works, and see the hardened version." },
+      {
+        name: "description",
+        content:
+          "Interactive educational platform: attack a vulnerable login, study why it works, and see the hardened version.",
+      },
       { property: "og:title", content: "SQLGuard — Learn SQL Injection" },
-      { property: "og:description", content: "Hands-on SQL injection learning with vulnerable & secure demos." },
+      {
+        property: "og:description",
+        content: "Hands-on SQL injection learning with vulnerable & secure demos.",
+      },
     ],
   }),
   component: Landing,
@@ -43,21 +59,30 @@ function Landing() {
           transition={{ delay: 0.3, duration: 0.6 }}
           className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground md:text-xl"
         >
-          Understanding SQL Injection — <span className="text-[color:var(--red-neon)]">From Attack</span>{" "}
+          Understanding SQL Injection —{" "}
+          <span className="text-[color:var(--red-neon)]">From Attack</span>{" "}
           <span className="text-[color:var(--green-neon)]">to Defense</span>
         </motion.p>
 
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <Link
-          to="/attacks"
-          className="group flex items-center gap-2 rounded-md border border-[color:var(--red-neon)]/40 bg-[color:var(--red-neon)]/10 px-5 py-3 text-sm font-semibold text-[color:var(--red-neon)] transition hover:bg-[color:var(--red-neon)]/20 hover:shadow-[0_0_20px_rgba(255,71,87,0.3)]"
-        >
-          <ShieldAlert className="h-4 w-4" />
-          Attack Guide
-          <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-        </Link>
-        <Link
-          to="/vulnerable"
+        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
+          <Link
+            to="/walkthrough"
+            className="group flex items-center gap-2 rounded-md bg-[color:var(--cyan-neon)] px-5 py-3 text-sm font-semibold text-[#0d1117] transition hover:shadow-[0_0_25px_rgba(0,212,255,0.4)]"
+          >
+            <ListOrdered className="h-4 w-4" />
+            Start the Step-by-Step Walkthrough
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+          </Link>
+          <Link
+            to="/attacks"
+            className="group flex items-center gap-2 rounded-md border border-[color:var(--red-neon)]/40 bg-[color:var(--red-neon)]/10 px-5 py-3 text-sm font-semibold text-[color:var(--red-neon)] transition hover:bg-[color:var(--red-neon)]/20 hover:shadow-[0_0_20px_rgba(255,71,87,0.3)]"
+          >
+            <ShieldAlert className="h-4 w-4" />
+            Attack Guide
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+          </Link>
+          <Link
+            to="/vulnerable"
             className="group flex items-center gap-2 rounded-md border border-[color:var(--red-neon)]/40 bg-[color:var(--red-neon)]/10 px-5 py-3 text-sm font-semibold text-[color:var(--red-neon)] transition hover:bg-[color:var(--red-neon)]/20 hover:shadow-[0_0_20px_rgba(255,71,87,0.3)]"
           >
             <ShieldAlert className="h-4 w-4" />
@@ -81,8 +106,8 @@ function Landing() {
           What is <span className="text-[color:var(--cyan-neon)]">SQL Injection</span>?
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
-          When user input is concatenated directly into a SQL query, an attacker can break out of the
-          string and rewrite the query's logic.
+          When user input is concatenated directly into a SQL query, an attacker can break out of
+          the string and rewrite the query's logic.
         </p>
 
         <div className="mt-10 rounded-xl border border-[#30363d] bg-[#161b22] p-6 md:p-10">
@@ -97,25 +122,82 @@ function Landing() {
           <div className="mt-8 rounded-lg border border-[#30363d] bg-[#0d1117] p-4 font-mono text-sm">
             <div className="text-muted-foreground">Intended query:</div>
             <div className="mt-1">
-              <span className="text-[#79c0ff]">SELECT</span> * <span className="text-[#79c0ff]">FROM</span> users{" "}
-              <span className="text-[#79c0ff]">WHERE</span> username=<span className="text-[#7ee787]">'alice'</span>{" "}
-              <span className="text-[#79c0ff]">AND</span> password=<span className="text-[#7ee787]">'secret'</span>
+              <span className="text-[#79c0ff]">SELECT</span> *{" "}
+              <span className="text-[#79c0ff]">FROM</span> users{" "}
+              <span className="text-[#79c0ff]">WHERE</span> username=
+              <span className="text-[#7ee787]">'alice'</span>{" "}
+              <span className="text-[#79c0ff]">AND</span> password=
+              <span className="text-[#7ee787]">'secret'</span>
             </div>
             <div className="mt-4 text-muted-foreground">After injection:</div>
             <div className="mt-1">
-              <span className="text-[#79c0ff]">SELECT</span> * <span className="text-[#79c0ff]">FROM</span> users{" "}
+              <span className="text-[#79c0ff]">SELECT</span> *{" "}
+              <span className="text-[#79c0ff]">FROM</span> users{" "}
               <span className="text-[#79c0ff]">WHERE</span> username=
               <span className="text-[color:var(--red-neon)]">''</span>{" "}
-              <span className="rounded bg-[color:var(--red-neon)]/15 px-1 text-[color:var(--red-neon)]">OR '1'='1' --</span>
+              <span className="rounded bg-[color:var(--red-neon)]/15 px-1 text-[color:var(--red-neon)]">
+                OR '1'='1' --
+              </span>
               <span className="text-muted-foreground">' AND password='...'</span>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Learning path */}
+      <section className="mt-24">
+        <h2 className="text-center font-mono text-3xl font-bold md:text-4xl">
+          Your <span className="text-[color:var(--cyan-neon)]">learning path</span>
+        </h2>
+        <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
+          Follow the path from offense to defense. Each stop builds on the previous one.
+        </p>
+
+        <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-4">
+          <PathCard
+            n="1"
+            tone="red"
+            icon={ShieldAlert}
+            title="Attack"
+            desc="Break a real login with the vulnerable demo and a payload library."
+            to="/vulnerable"
+            cta="Try the attack"
+          />
+          <PathCard
+            n="2"
+            tone="cyan"
+            icon={ListOrdered}
+            title="Understand"
+            desc="Replay any payload step by step and watch the query get rewritten."
+            to="/walkthrough"
+            cta="Open walkthrough"
+          />
+          <PathCard
+            n="3"
+            tone="green"
+            icon={Shield}
+            title="Defend"
+            desc="Fire the same payload at the hardened login and see it blocked."
+            to="/secure"
+            cta="See the defense"
+          />
+          <PathCard
+            n="4"
+            tone="cyan"
+            icon={BookOpen}
+            title="Apply"
+            desc="Use the defense guide and checklist to secure your own apps."
+            to="/defense"
+            cta="Read the guide"
+          />
+        </div>
+      </section>
+
       {/* How it works */}
       <section className="mt-24">
-        <h2 className="text-center font-mono text-3xl font-bold md:text-4xl">How this demo works</h2>
+        <h2 className="text-center font-mono text-3xl font-bold md:text-4xl">
+          How this demo works
+        </h2>
         <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
           <StepCard
             n="01"
@@ -141,7 +223,9 @@ function Landing() {
       {/* CTA strip */}
       <section className="mt-24 rounded-xl border border-[#30363d] bg-gradient-to-br from-[#161b22] to-[#0d1117] p-8 text-center md:p-12">
         <h3 className="font-mono text-2xl font-bold md:text-3xl">Ready to break some queries?</h3>
-        <p className="mt-2 text-muted-foreground">Jump into the lab — no setup, no real database, just learning.</p>
+        <p className="mt-2 text-muted-foreground">
+          Jump into the lab — no setup, no real database, just learning.
+        </p>
         <Link
           to="/lab"
           className="mt-6 inline-flex items-center gap-2 rounded-md bg-[color:var(--cyan-neon)] px-5 py-3 text-sm font-semibold text-[#0d1117] transition hover:shadow-[0_0_25px_rgba(0,212,255,0.4)]"
@@ -154,11 +238,23 @@ function Landing() {
   );
 }
 
-function FlowCard({ icon: Icon, title, sub, tone }: { icon: any; title: string; sub: string; tone: "red" | "cyan" | "green" }) {
+function FlowCard({
+  icon: Icon,
+  title,
+  sub,
+  tone,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  sub: string;
+  tone: "red" | "cyan" | "green";
+}) {
   const color =
-    tone === "red" ? "text-[color:var(--red-neon)] border-[color:var(--red-neon)]/40" :
-    tone === "green" ? "text-[color:var(--green-neon)] border-[color:var(--green-neon)]/40" :
-    "text-[color:var(--cyan-neon)] border-[color:var(--cyan-neon)]/40";
+    tone === "red"
+      ? "text-[color:var(--red-neon)] border-[color:var(--red-neon)]/40"
+      : tone === "green"
+        ? "text-[color:var(--green-neon)] border-[color:var(--green-neon)]/40"
+        : "text-[color:var(--cyan-neon)] border-[color:var(--cyan-neon)]/40";
   return (
     <div className={`rounded-lg border bg-[#0d1117] p-4 text-center ${color}`}>
       <Icon className="mx-auto h-6 w-6" />
@@ -176,20 +272,93 @@ function Arrow() {
   );
 }
 
-function StepCard({ n, title, desc, tone }: { n: string; title: string; desc: string; tone: "red" | "cyan" | "green" }) {
+function PathCard({
+  n,
+  tone,
+  icon: Icon,
+  title,
+  desc,
+  to,
+  cta,
+}: {
+  n: string;
+  tone: "red" | "cyan" | "green";
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  title: string;
+  desc: string;
+  to: "/vulnerable" | "/walkthrough" | "/secure" | "/defense";
+  cta: string;
+}) {
+  const color =
+    tone === "red"
+      ? "var(--red-neon)"
+      : tone === "green"
+        ? "var(--green-neon)"
+        : "var(--cyan-neon)";
+  return (
+    <motion.div
+      whileHover={{ y: -4 }}
+      className="flex flex-col rounded-xl border border-[#30363d] bg-[#161b22] p-5"
+    >
+      <div className="flex items-center gap-3">
+        <span
+          className="flex h-9 w-9 items-center justify-center rounded-full font-mono text-sm font-bold"
+          style={{ color, background: `color-mix(in oklab, ${color} 15%, transparent)` }}
+        >
+          {n}
+        </span>
+        <Icon className="h-5 w-5" style={{ color }} />
+      </div>
+      <h3 className="mt-3 text-lg font-semibold">{title}</h3>
+      <p className="mt-1 flex-1 text-sm text-muted-foreground">{desc}</p>
+      <Link
+        to={to}
+        className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold hover:underline"
+        style={{ color }}
+      >
+        {cta}
+        <ArrowRight className="h-4 w-4" />
+      </Link>
+    </motion.div>
+  );
+}
+
+function StepCard({
+  n,
+  title,
+  desc,
+  tone,
+}: {
+  n: string;
+  title: string;
+  desc: string;
+  tone: "red" | "cyan" | "green";
+}) {
   const accent =
-    tone === "red" ? "var(--red-neon)" : tone === "green" ? "var(--green-neon)" : "var(--cyan-neon)";
+    tone === "red"
+      ? "var(--red-neon)"
+      : tone === "green"
+        ? "var(--green-neon)"
+        : "var(--cyan-neon)";
   return (
     <motion.div
       whileHover={{ y: -4 }}
       className="rounded-xl border border-[#30363d] bg-[#161b22] p-6"
     >
-      <div className="font-mono text-4xl font-bold" style={{ color: `var(--${tone === "red" ? "red-neon" : tone === "green" ? "green-neon" : "cyan-neon"})` }}>
+      <div
+        className="font-mono text-4xl font-bold"
+        style={{
+          color: `var(--${tone === "red" ? "red-neon" : tone === "green" ? "green-neon" : "cyan-neon"})`,
+        }}
+      >
         {n}
       </div>
       <h3 className="mt-3 text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-sm text-muted-foreground">{desc}</p>
-      <div className="mt-4 h-px w-12" style={{ background: `color-mix(in oklab, ${accent} 60%, transparent)` }} />
+      <div
+        className="mt-4 h-px w-12"
+        style={{ background: `color-mix(in oklab, ${accent} 60%, transparent)` }}
+      />
     </motion.div>
   );
 }

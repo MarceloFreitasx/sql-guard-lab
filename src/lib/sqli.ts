@@ -5,15 +5,11 @@ export const USERS = [
   { username: "alice", password: "password1" },
 ];
 
-export type AttackCategory =
-  | "auth_bypass"
-  | "comment"
-  | "union"
-  | "blind"
-  | "stacked"
-  | "encoding";
+export type AttackCategory = "auth_bypass" | "comment" | "union" | "blind" | "stacked" | "encoding";
 
 export type InjectionField = "username" | "password" | "either";
+
+export type Severity = "low" | "medium" | "high" | "critical";
 
 export type SqlPayload = {
   id: string;
@@ -25,6 +21,7 @@ export type SqlPayload = {
   technique: string;
   exampleQuery: string;
   impact: string;
+  severity: Severity;
 };
 
 export const ATTACK_CATEGORIES: {
@@ -76,6 +73,7 @@ export const PAYLOADS: SqlPayload[] = [
       "The closing quote ends the username literal. OR '1'='1' is always TRUE, so the WHERE clause matches every row.",
     exampleQuery: "SELECT * FROM users WHERE username='' OR '1'='1' --' AND password='...'",
     impact: "Full login bypass without knowing any password.",
+    severity: "critical",
   },
   {
     id: "or-1-1",
@@ -88,6 +86,7 @@ export const PAYLOADS: SqlPayload[] = [
       "Uses a numeric comparison (1=1) instead of string quotes. Still evaluates to TRUE for every row.",
     exampleQuery: "SELECT * FROM users WHERE username='' OR 1=1 --' AND password='...'",
     impact: "Bypasses authentication and returns the first user in the table.",
+    severity: "critical",
   },
   {
     id: "double-quote-bypass",
@@ -100,6 +99,7 @@ export const PAYLOADS: SqlPayload[] = [
       "Same tautology pattern but targets apps that use double-quoted string literals instead of single quotes.",
     exampleQuery: 'SELECT * FROM users WHERE username="" OR "1"="1" --" AND password="..."',
     impact: "Login bypass on double-quoted SQL construction.",
+    severity: "high",
   },
   {
     id: "no-quote-bypass",
@@ -112,6 +112,7 @@ export const PAYLOADS: SqlPayload[] = [
       "If the developer omits quotes around numeric-looking fields, the OR 1=1 is parsed as raw SQL logic.",
     exampleQuery: "SELECT * FROM users WHERE username=1 OR 1=1 AND password='...'",
     impact: "Authentication bypass on unquoted parameter insertion.",
+    severity: "high",
   },
   {
     id: "admin-comment-dash",
@@ -124,6 +125,7 @@ export const PAYLOADS: SqlPayload[] = [
       "Sets username to admin and uses -- to comment out everything after, including the AND password clause.",
     exampleQuery: "SELECT * FROM users WHERE username='admin' --' AND password='...'",
     impact: "Targeted login as a known username without the password.",
+    severity: "critical",
   },
   {
     id: "admin-comment-hash",
@@ -132,9 +134,11 @@ export const PAYLOADS: SqlPayload[] = [
     field: "username",
     category: "comment",
     desc: "MySQL-style comment delimiter.",
-    technique: "# starts an inline comment in MySQL, ignoring the password check just like -- does.",
+    technique:
+      "# starts an inline comment in MySQL, ignoring the password check just like -- does.",
     exampleQuery: "SELECT * FROM users WHERE username='admin'#' AND password='...'",
     impact: "Password check removed via MySQL comment syntax.",
+    severity: "critical",
   },
   {
     id: "block-comment",
@@ -147,6 +151,7 @@ export const PAYLOADS: SqlPayload[] = [
       "/* starts a multi-line comment. Combined with a closing */ elsewhere, it can neutralize the password clause.",
     exampleQuery: "SELECT * FROM users WHERE username='admin'/*' AND password='...'",
     impact: "Bypasses filters that only block -- and # but allow block comments.",
+    severity: "medium",
   },
   {
     id: "union-forge",
@@ -157,8 +162,10 @@ export const PAYLOADS: SqlPayload[] = [
     desc: "Appends a forged result row with admin credentials.",
     technique:
       "UNION SELECT merges a second result set. The attacker crafts columns to match the original query shape.",
-    exampleQuery: "SELECT * FROM users WHERE username='' UNION SELECT 1,'admin','x' --' AND password='...'",
+    exampleQuery:
+      "SELECT * FROM users WHERE username='' UNION SELECT 1,'admin','x' --' AND password='...'",
     impact: "Data extraction or forged login row without valid credentials.",
+    severity: "critical",
   },
   {
     id: "union-null",
@@ -169,8 +176,10 @@ export const PAYLOADS: SqlPayload[] = [
     desc: "Probes column count with NULL placeholders.",
     technique:
       "Attackers use UNION SELECT null,... to discover how many columns the query returns before injecting real data.",
-    exampleQuery: "SELECT * FROM users WHERE username='' UNION SELECT null,null,null --' AND password='...'",
+    exampleQuery:
+      "SELECT * FROM users WHERE username='' UNION SELECT null,null,null --' AND password='...'",
     impact: "Reconnaissance step toward full UNION-based data theft.",
+    severity: "medium",
   },
   {
     id: "blind-boolean-true",
@@ -183,6 +192,7 @@ export const PAYLOADS: SqlPayload[] = [
       "In blind injection, the attacker infers data from whether the page behaves differently for TRUE vs FALSE conditions.",
     exampleQuery: "SELECT * FROM users WHERE username='' OR 'a'='a' AND password='...'",
     impact: "Login succeeds; in blind contexts this confirms injectable input.",
+    severity: "high",
   },
   {
     id: "blind-and-true",
@@ -195,6 +205,7 @@ export const PAYLOADS: SqlPayload[] = [
       "Compare with AND 1=2 -- (false). Different responses reveal injectable parameters even when errors are hidden.",
     exampleQuery: "SELECT * FROM users WHERE username='' AND 1=1 --' AND password='...'",
     impact: "Confirms boolean-based blind injection vector.",
+    severity: "low",
   },
   {
     id: "stacked-select",
@@ -207,6 +218,7 @@ export const PAYLOADS: SqlPayload[] = [
       "The semicolon terminates the first statement. A second query executes if the driver allows stacked queries.",
     exampleQuery: "SELECT * FROM users WHERE username=''; SELECT 1; --' AND password='...'",
     impact: "Potential for data reads, writes, or schema changes in vulnerable configs.",
+    severity: "high",
   },
   {
     id: "stacked-drop",
@@ -219,6 +231,7 @@ export const PAYLOADS: SqlPayload[] = [
       "A classic cautionary payload. In this demo it only simulates the concept — no real table is dropped.",
     exampleQuery: "SELECT * FROM users WHERE username=''; DROP TABLE users; --' AND password='...'",
     impact: "Demonstrates catastrophic damage possible with stacked queries (educational only).",
+    severity: "critical",
   },
   {
     id: "encoding-no-space",
@@ -231,6 +244,7 @@ export const PAYLOADS: SqlPayload[] = [
       "Some naive filters look for '-- ' (with space) but miss '--' glued directly to the payload.",
     exampleQuery: "SELECT * FROM users WHERE username='admin'--' AND password='...'",
     impact: "Bypasses simplistic WAF/filter rules on comment syntax.",
+    severity: "medium",
   },
   {
     id: "encoding-empty-string",
@@ -239,9 +253,11 @@ export const PAYLOADS: SqlPayload[] = [
     field: "username",
     category: "encoding",
     desc: "Tautology using empty string comparison.",
-    technique: "''='' is always TRUE. An alternative tautology that may evade keyword blacklists on '1=1'.",
+    technique:
+      "''='' is always TRUE. An alternative tautology that may evade keyword blacklists on '1=1'.",
     exampleQuery: "SELECT * FROM users WHERE username='' OR ''='' AND password='...'",
     impact: "Authentication bypass using alternate tautology syntax.",
+    severity: "high",
   },
   {
     id: "password-or-bypass",
@@ -254,8 +270,16 @@ export const PAYLOADS: SqlPayload[] = [
       "Attackers target any input that reaches the query. The password field is equally dangerous when concatenated.",
     exampleQuery: "SELECT * FROM users WHERE username='admin' AND password='' OR '1'='1' --'",
     impact: "Bypass even when username is correct or locked down.",
+    severity: "critical",
   },
 ];
+
+export const SEVERITY_META: Record<Severity, { label: string; color: string }> = {
+  low: { label: "Low", color: "var(--cyan-neon)" },
+  medium: { label: "Medium", color: "#ffa657" },
+  high: { label: "High", color: "var(--red-neon)" },
+  critical: { label: "Critical", color: "var(--red-neon)" },
+};
 
 export const SQLI_PATTERNS = [
   /'\s*or\s/i,
@@ -305,7 +329,8 @@ export function classifyAttack(username: string, password: string): AttackCatego
     if (/\bunion\b/i.test(username) || /\bunion\b/i.test(password)) return "union";
     if (/;/.test(username) || /;/.test(password)) return "stacked";
     if (/--|#|\/\*/.test(username) || /--|#|\/\*/.test(password)) return "comment";
-    if (/'\s*=\s*'|"\s*=\s*"/.test(username) || /'\s*=\s*'|"\s*=\s*"/.test(password)) return "encoding";
+    if (/'\s*=\s*'|"\s*=\s*"/.test(username) || /'\s*=\s*'|"\s*=\s*"/.test(password))
+      return "encoding";
     if (/\b(and|or)\b/i.test(username) || /\b(and|or)\b/i.test(password)) return "blind";
     return "auth_bypass";
   }
@@ -339,9 +364,7 @@ export function buildSecureQuery(): string {
   return `SELECT * FROM users WHERE username = ? AND password = ?`;
 }
 
-export function applyPayloadToFields(
-  payload: SqlPayload,
-): { username: string; password: string } {
+export function applyPayloadToFields(payload: SqlPayload): { username: string; password: string } {
   if (payload.field === "password") return { username: "admin", password: payload.payload };
   if (payload.field === "username") return { username: payload.payload, password: "" };
   return { username: payload.payload, password: "" };
@@ -395,7 +418,12 @@ export function simulateVulnerableLogin(username: string, password: string): Aut
 
   const real = USERS.find((u) => u.username === username && u.password === password);
   if (real) {
-    return { granted: true, reason: "Valid credentials matched.", query, matchedUser: real.username };
+    return {
+      granted: true,
+      reason: "Valid credentials matched.",
+      query,
+      matchedUser: real.username,
+    };
   }
 
   const matchedPayload = findMatchingPayload(username, password);
@@ -412,7 +440,12 @@ export function simulateSecureLogin(username: string, password: string): AuthRes
   const query = `${buildSecureQuery()}\n-- bound: username=${JSON.stringify(username)}, password=${JSON.stringify(password)}`;
   const real = USERS.find((u) => u.username === username && u.password === password);
   if (real) {
-    return { granted: true, reason: "Valid credentials matched.", query, matchedUser: real.username };
+    return {
+      granted: true,
+      reason: "Valid credentials matched.",
+      query,
+      matchedUser: real.username,
+    };
   }
 
   const category = classifyAttack(username, password);
@@ -439,4 +472,178 @@ export function simulateSecureLogin(username: string, password: string): AuthRes
 
 export function getCategoryLabel(category: AttackCategory): string {
   return ATTACK_CATEGORIES.find((c) => c.id === category)?.label ?? category;
+}
+
+// Maps each attack category to the concrete defense that neutralizes it.
+export const DEFENSE_BY_CATEGORY: Record<
+  AttackCategory,
+  { primary: string; how: string; extra: string }
+> = {
+  auth_bypass: {
+    primary: "Prepared statements (parameterized queries)",
+    how: "The tautology ' OR '1'='1' is bound as a literal value, so the WHERE clause searches for a username equal to that exact string and matches nothing.",
+    extra: "Defense in depth: server-side validation + generic 'invalid credentials' errors.",
+  },
+  comment: {
+    primary: "Prepared statements (parameterized queries)",
+    how: "Comment delimiters (--, #, /*) stay inside the bound value and never truncate the SQL template, so the password check is always executed.",
+    extra: "Never rely on blacklisting comment characters; bind parameters instead.",
+  },
+  union: {
+    primary: "Prepared statements + least-privilege DB account",
+    how: "A bound value can never add a second SELECT to the compiled statement, so no forged row can be merged into the result set.",
+    extra: "Restrict the DB user so it cannot read other tables even if injection were possible.",
+  },
+  blind: {
+    primary: "Prepared statements + uniform responses",
+    how: "Binding input removes the injectable condition, and returning identical responses/timing for true and false denies the attacker any signal to infer data.",
+    extra: "Rate-limit and monitor repeated failed logins that probe boolean conditions.",
+  },
+  stacked: {
+    primary: "Prepared statements + disable multi-statements",
+    how: "Parameter binding keeps the semicolon inside the value, and most drivers reject stacked statements on a single query, so no second command runs.",
+    extra: "Least-privilege accounts prevent destructive statements like DROP/DELETE.",
+  },
+  encoding: {
+    primary: "Prepared statements (not filtering)",
+    how: "Because the value is bound as data, encoding tricks that dodge naive WAF/keyword filters are irrelevant — the payload is never parsed as SQL.",
+    extra: "Treat WAFs as a secondary layer, never as the primary control.",
+  },
+};
+
+export type WalkStep = {
+  n: number;
+  title: string;
+  narration: string;
+  queryTokens?: { text: string; danger: boolean }[];
+  callout?: { kind: "danger" | "info" | "safe"; text: string };
+};
+
+const CATEGORY_PARSE_EXPLAINER: Record<AttackCategory, string> = {
+  auth_bypass:
+    "The database now sees a condition that is always TRUE (a tautology), so every row matches the WHERE clause and the first user is returned.",
+  comment:
+    "Everything after the comment delimiter is ignored. The AND password=... check is gone, so only the username portion is evaluated.",
+  union:
+    "The UNION appends a second, attacker-controlled result set. The application reads the forged row as if it were a real user.",
+  blind:
+    "The injected boolean condition decides whether a row comes back. By flipping it between TRUE and FALSE, an attacker reads data one bit at a time.",
+  stacked:
+    "The semicolon ends the login query and a second statement is queued. On drivers that allow stacked queries this can read, write, or destroy data.",
+  encoding:
+    "A syntax/encoding variant slips past naive filters, but the underlying tautology or comment still rewrites the query logic.",
+};
+
+export function buildAttackSteps(payload: SqlPayload): WalkStep[] {
+  const injectedQuery =
+    payload.field === "password"
+      ? buildVulnerableQuery("admin", payload.payload)
+      : buildVulnerableQuery(payload.payload, "");
+  const fieldLabel = payload.field === "password" ? "password" : "username";
+
+  return [
+    {
+      n: 1,
+      title: "The intended query",
+      narration:
+        "Normally the app builds this query from a legitimate login. The values in green are meant to be plain data — a username and a password.",
+      queryTokens: highlightSafe(
+        "SELECT * FROM users WHERE username='alice' AND password='secret'",
+      ),
+      callout: {
+        kind: "info",
+        text: "Notice the single quotes that wrap each value. They mark where data is supposed to start and end.",
+      },
+    },
+    {
+      n: 2,
+      title: "The attacker types a payload",
+      narration: `Instead of a normal value, the attacker enters this into the ${fieldLabel} field:`,
+      queryTokens: highlightDanger(payload.payload),
+      callout: { kind: "danger", text: `${payload.technique}` },
+    },
+    {
+      n: 3,
+      title: "The server concatenates it into SQL",
+      narration:
+        "The vulnerable backend glues the input straight into the SQL string. The highlighted characters break out of the data and become SQL code.",
+      queryTokens: highlightDanger(injectedQuery),
+      callout: {
+        kind: "danger",
+        text: "User input is no longer just data — it is now part of the query structure.",
+      },
+    },
+    {
+      n: 4,
+      title: "The database parses it as code",
+      narration: CATEGORY_PARSE_EXPLAINER[payload.category],
+      queryTokens: highlightDanger(payload.exampleQuery),
+      callout: { kind: "danger", text: CATEGORY_REASONS[payload.category] },
+    },
+    {
+      n: 5,
+      title: "Result: ACCESS GRANTED",
+      narration:
+        "The query returns a matching row, so the app logs the attacker in — usually as the first user (admin).",
+      callout: { kind: "danger", text: `Impact: ${payload.impact}` },
+    },
+  ];
+}
+
+export function buildDefenseSteps(payload: SqlPayload): WalkStep[] {
+  const defense = DEFENSE_BY_CATEGORY[payload.category];
+  const boundValue = payload.payload;
+
+  return [
+    {
+      n: 1,
+      title: "Same payload, hardened backend",
+      narration:
+        "We send the exact same attack, but this backend uses a prepared statement instead of string concatenation.",
+      queryTokens: highlightDanger(payload.payload),
+      callout: {
+        kind: "info",
+        text: "Nothing changes on the attacker's side — only the server-side code is different.",
+      },
+    },
+    {
+      n: 2,
+      title: "The SQL template is compiled first",
+      narration:
+        "The database receives the query template with placeholders (?) and compiles its structure before any user data is attached.",
+      queryTokens: highlightSafe("SELECT * FROM users WHERE username = ? AND password = ?"),
+      callout: {
+        kind: "safe",
+        text: "The structure of the query is now locked. Data sent later cannot change it.",
+      },
+    },
+    {
+      n: 3,
+      title: "Your input is bound as pure data",
+      narration:
+        "The payload is sent separately and bound to the first placeholder. Quotes, comments and OR 1=1 are stored verbatim.",
+      queryTokens: highlightSafe(`bound[1] = ${JSON.stringify(boundValue)}`),
+      callout: {
+        kind: "safe",
+        text: "Everything inside the value is treated as literal characters, not SQL operators.",
+      },
+    },
+    {
+      n: 4,
+      title: "The database searches for that literal string",
+      narration: defense.how,
+      callout: { kind: "safe", text: `Defense: ${defense.primary}` },
+    },
+    {
+      n: 5,
+      title: "Result: ACCESS DENIED",
+      narration:
+        "No user has a username (or password) literally equal to the payload, so the query returns nothing and login fails.",
+      callout: { kind: "safe", text: `Blocked: ${payload.impact}` },
+    },
+  ];
+}
+
+function highlightSafe(input: string): { text: string; danger: boolean }[] {
+  return [{ text: input, danger: false }];
 }

@@ -1,14 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, Lightbulb, CheckSquare, Square } from "lucide-react";
+import { BookOpen, Lightbulb, CheckSquare, Square, ShieldCheck, ArrowRight } from "lucide-react";
 import { CodeBlock } from "../components/CodeBlock";
+import { ATTACK_CATEGORIES, DEFENSE_BY_CATEGORY } from "../lib/sqli";
 
 export const Route = createFileRoute("/defense")({
   head: () => ({
     meta: [
       { title: "Defense Guide — SQLGuard" },
-      { name: "description", content: "Prepared statements, password hashing, session hardening, and security headers explained." },
+      {
+        name: "description",
+        content:
+          "Prepared statements, password hashing, session hardening, and security headers explained.",
+      },
     ],
   }),
   component: DefensePage,
@@ -41,7 +46,8 @@ function DefensePage() {
   const toggle = (i: number) =>
     setChecked((prev) => {
       const n = new Set(prev);
-      n.has(i) ? n.delete(i) : n.add(i);
+      if (n.has(i)) n.delete(i);
+      else n.add(i);
       return n;
     });
 
@@ -53,8 +59,13 @@ function DefensePage() {
           Documentation
         </div>
         <h1 className="mt-4 font-mono text-3xl font-bold md:text-5xl">Defense Guide</h1>
-        <p className="mt-2 text-muted-foreground">A practical reference for stopping SQL injection — and the rest.</p>
-        <Link to="/attacks" className="mt-4 inline-block text-sm text-[color:var(--cyan-neon)] hover:underline">
+        <p className="mt-2 text-muted-foreground">
+          A practical reference for stopping SQL injection — and the rest.
+        </p>
+        <Link
+          to="/attacks"
+          className="mt-4 inline-block text-sm text-[color:var(--cyan-neon)] hover:underline"
+        >
           See attack techniques first →
         </Link>
       </header>
@@ -64,8 +75,9 @@ function DefensePage() {
         <h2 className="font-mono text-2xl font-bold">1. The Problem</h2>
         <div className="mt-4 rounded-xl border border-[#30363d] bg-[#161b22] p-6">
           <p className="text-muted-foreground">
-            When code builds SQL by gluing strings together, user input becomes part of the query. An attacker who
-            understands the structure can close a string, add a tautology, and rewrite what the DB executes.
+            When code builds SQL by gluing strings together, user input becomes part of the query.
+            An attacker who understands the structure can close a string, add a tautology, and
+            rewrite what the DB executes.
           </p>
           <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
             {["Input", "Concat", "DB executes attacker SQL"].map((s, i) => (
@@ -170,9 +182,56 @@ header("Permissions-Policy: geolocation=(), microphone=()");`}
         </div>
       </section>
 
+      {/* Attack -> Defense mapping */}
+      <section className="mt-14">
+        <h2 className="font-mono text-2xl font-bold">3. Attack → Matching Defense</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Every attack technique from the guide maps to a concrete countermeasure. Prepared
+          statements stop almost all of them; the extras add defense in depth.
+        </p>
+        <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+          {ATTACK_CATEGORIES.map((cat) => {
+            const def = DEFENSE_BY_CATEGORY[cat.id];
+            return (
+              <motion.div
+                key={cat.id}
+                initial={{ opacity: 0, y: 8 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="rounded-xl border border-[#30363d] bg-[#161b22] p-5"
+              >
+                <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+                  <span className="rounded border border-[color:var(--red-neon)]/30 bg-[color:var(--red-neon)]/10 px-2 py-1 text-[color:var(--red-neon)]">
+                    {cat.label}
+                  </span>
+                  <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="inline-flex items-center gap-1 rounded border border-[color:var(--green-neon)]/30 bg-[color:var(--green-neon)]/10 px-2 py-1 text-[color:var(--green-neon)]">
+                    <ShieldCheck className="h-3 w-3" />
+                    {def.primary}
+                  </span>
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground">{def.how}</p>
+                <div className="mt-3 flex gap-2 rounded-md border border-[color:var(--cyan-neon)]/30 bg-[color:var(--cyan-neon)]/5 p-3">
+                  <Lightbulb className="h-4 w-4 shrink-0 text-[color:var(--cyan-neon)]" />
+                  <p className="text-xs text-muted-foreground">{def.extra}</p>
+                </div>
+                <Link
+                  to="/walkthrough"
+                  search={{}}
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--cyan-neon)] hover:underline"
+                >
+                  See it step-by-step
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
+      </section>
+
       {/* Checklist */}
       <section className="mt-14">
-        <h2 className="font-mono text-2xl font-bold">3. Checklist</h2>
+        <h2 className="font-mono text-2xl font-bold">4. Checklist</h2>
         <p className="mt-1 text-sm text-muted-foreground">Tick each item as you ship it.</p>
         <ul className="mt-5 space-y-2">
           {CHECKLIST.map((item, i) => {
@@ -192,7 +251,11 @@ header("Permissions-Policy: geolocation=(), microphone=()");`}
                 ) : (
                   <Square className="h-5 w-5 shrink-0 text-muted-foreground" />
                 )}
-                <span className={`text-sm ${isChecked ? "text-[color:var(--green-neon)] line-through" : ""}`}>{item}</span>
+                <span
+                  className={`text-sm ${isChecked ? "text-[color:var(--green-neon)] line-through" : ""}`}
+                >
+                  {item}
+                </span>
               </li>
             );
           })}
@@ -205,7 +268,17 @@ header("Permissions-Policy: geolocation=(), microphone=()");`}
   );
 }
 
-function TabContent({ explanation, code, language, why }: { explanation: string; code: string; language: string; why: string }) {
+function TabContent({
+  explanation,
+  code,
+  language,
+  why,
+}: {
+  explanation: string;
+  code: string;
+  language: string;
+  why: string;
+}) {
   return (
     <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
       <p className="text-muted-foreground">{explanation}</p>
@@ -213,7 +286,9 @@ function TabContent({ explanation, code, language, why }: { explanation: string;
       <div className="flex gap-3 rounded-lg border border-[color:var(--cyan-neon)]/30 bg-[color:var(--cyan-neon)]/5 p-4">
         <Lightbulb className="h-5 w-5 shrink-0 text-[color:var(--cyan-neon)]" />
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-[color:var(--cyan-neon)]">Why this matters</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[color:var(--cyan-neon)]">
+            Why this matters
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">{why}</p>
         </div>
       </div>

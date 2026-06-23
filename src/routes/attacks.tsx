@@ -5,6 +5,7 @@ import { CodeBlock } from "../components/CodeBlock";
 import {
   ATTACK_CATEGORIES,
   getPayloadsByCategory,
+  SEVERITY_META,
   type AttackCategory,
 } from "../lib/sqli";
 
@@ -12,7 +13,11 @@ export const Route = createFileRoute("/attacks")({
   head: () => ({
     meta: [
       { title: "Attack Guide — SQLGuard" },
-      { name: "description", content: "Reference guide to SQL injection techniques: auth bypass, comments, UNION, blind, stacked queries, and encoding variants." },
+      {
+        name: "description",
+        content:
+          "Reference guide to SQL injection techniques: auth bypass, comments, UNION, blind, stacked queries, and encoding variants.",
+      },
     ],
   }),
   component: AttacksPage,
@@ -68,7 +73,9 @@ function AttacksPage() {
           <Swords className="h-3 w-3" />
           Attack Reference
         </div>
-        <h1 className="mt-4 font-mono text-3xl font-bold md:text-5xl">SQL Injection Attack Guide</h1>
+        <h1 className="mt-4 font-mono text-3xl font-bold md:text-5xl">
+          SQL Injection Attack Guide
+        </h1>
         <p className="mt-2 text-muted-foreground">
           Techniques, payloads, and PHP examples — then test each one in the lab.
         </p>
@@ -111,7 +118,9 @@ function AttacksPage() {
                 Broken query
               </span>
               <span>→</span>
-              <span className="rounded border border-[#30363d] bg-[#161b22] px-2 py-1">Unauthorized access</span>
+              <span className="rounded border border-[#30363d] bg-[#161b22] px-2 py-1">
+                Unauthorized access
+              </span>
             </div>
 
             <div className="mt-5">
@@ -124,6 +133,7 @@ function AttacksPage() {
                   <tr>
                     <th className="px-4 py-3">Name</th>
                     <th className="px-4 py-3">Payload</th>
+                    <th className="px-4 py-3">Severity</th>
                     <th className="px-4 py-3">Field</th>
                     <th className="px-4 py-3">Impact</th>
                     <th className="px-4 py-3">Try</th>
@@ -131,9 +141,25 @@ function AttacksPage() {
                 </thead>
                 <tbody>
                   {payloads.map((p) => (
-                    <tr key={p.id} className="border-b border-[#30363d] bg-[#0d1117]/50 last:border-0">
+                    <tr
+                      key={p.id}
+                      className="border-b border-[#30363d] bg-[#0d1117]/50 last:border-0"
+                    >
                       <td className="px-4 py-3 font-semibold">{p.name}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-[color:var(--cyan-neon)]">{p.payload}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-[color:var(--cyan-neon)]">
+                        {p.payload}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className="rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                          style={{
+                            color: SEVERITY_META[p.severity].color,
+                            background: `color-mix(in oklab, ${SEVERITY_META[p.severity].color} 15%, transparent)`,
+                          }}
+                        >
+                          {SEVERITY_META[p.severity].label}
+                        </span>
+                      </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">{p.field}</td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">{p.impact}</td>
                       <td className="px-4 py-3">
@@ -165,8 +191,8 @@ function AttacksPage() {
       <section className="mt-14 rounded-xl border border-[#30363d] bg-gradient-to-br from-[#161b22] to-[#0d1117] p-8">
         <h2 className="font-mono text-2xl font-bold">Vulnerable vs Secure</h2>
         <p className="mt-3 text-muted-foreground">
-          Every payload in this guide succeeds against string-concatenated SQL and fails against prepared statements.
-          Run the same input in both modes to see the difference.
+          Every payload in this guide succeeds against string-concatenated SQL and fails against
+          prepared statements. Run the same input in both modes to see the difference.
         </p>
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="rounded-lg border border-[color:var(--red-neon)]/30 bg-[color:var(--red-neon)]/5 p-4">
@@ -175,9 +201,13 @@ function AttacksPage() {
               <span className="font-semibold">Vulnerable mode</span>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              Input is stitched into the query. Quotes, OR, UNION, and comments become executable SQL.
+              Input is stitched into the query. Quotes, OR, UNION, and comments become executable
+              SQL.
             </p>
-            <Link to="/vulnerable" className="mt-3 inline-block text-sm text-[color:var(--red-neon)] hover:underline">
+            <Link
+              to="/vulnerable"
+              className="mt-3 inline-block text-sm text-[color:var(--red-neon)] hover:underline"
+            >
               Open vulnerable login →
             </Link>
           </div>
@@ -187,9 +217,13 @@ function AttacksPage() {
               <span className="font-semibold">Secure mode</span>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              Prepared statements bind values as data. The same payloads are harmless literal strings.
+              Prepared statements bind values as data. The same payloads are harmless literal
+              strings.
             </p>
-            <Link to="/secure" className="mt-3 inline-block text-sm text-[color:var(--green-neon)] hover:underline">
+            <Link
+              to="/secure"
+              className="mt-3 inline-block text-sm text-[color:var(--green-neon)] hover:underline"
+            >
               Open secure login →
             </Link>
           </div>
@@ -206,7 +240,8 @@ function AttacksPage() {
       <section className="mt-10 text-center text-xs text-muted-foreground">
         <p>
           {ATTACK_CATEGORIES.length} categories ·{" "}
-          {ATTACK_CATEGORIES.reduce((n, c) => n + getPayloadsByCategory(c.id).length, 0)} documented payloads
+          {ATTACK_CATEGORIES.reduce((n, c) => n + getPayloadsByCategory(c.id).length, 0)} documented
+          payloads
         </p>
       </section>
     </div>
