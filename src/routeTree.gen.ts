@@ -13,6 +13,7 @@ import { Route as VulnerableRouteImport } from './routes/vulnerable'
 import { Route as SecureRouteImport } from './routes/secure'
 import { Route as LabRouteImport } from './routes/lab'
 import { Route as DefenseRouteImport } from './routes/defense'
+import { Route as AttacksRouteImport } from './routes/attacks'
 import { Route as IndexRouteImport } from './routes/index'
 
 const VulnerableRoute = VulnerableRouteImport.update({
@@ -35,6 +36,11 @@ const DefenseRoute = DefenseRouteImport.update({
   path: '/defense',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AttacksRoute = AttacksRouteImport.update({
+  id: '/attacks',
+  path: '/attacks',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,6 +49,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/attacks': typeof AttacksRoute
   '/defense': typeof DefenseRoute
   '/lab': typeof LabRoute
   '/secure': typeof SecureRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/attacks': typeof AttacksRoute
   '/defense': typeof DefenseRoute
   '/lab': typeof LabRoute
   '/secure': typeof SecureRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/attacks': typeof AttacksRoute
   '/defense': typeof DefenseRoute
   '/lab': typeof LabRoute
   '/secure': typeof SecureRoute
@@ -65,14 +74,22 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/defense' | '/lab' | '/secure' | '/vulnerable'
+  fullPaths: '/' | '/attacks' | '/defense' | '/lab' | '/secure' | '/vulnerable'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/defense' | '/lab' | '/secure' | '/vulnerable'
-  id: '__root__' | '/' | '/defense' | '/lab' | '/secure' | '/vulnerable'
+  to: '/' | '/attacks' | '/defense' | '/lab' | '/secure' | '/vulnerable'
+  id:
+    | '__root__'
+    | '/'
+    | '/attacks'
+    | '/defense'
+    | '/lab'
+    | '/secure'
+    | '/vulnerable'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AttacksRoute: typeof AttacksRoute
   DefenseRoute: typeof DefenseRoute
   LabRoute: typeof LabRoute
   SecureRoute: typeof SecureRoute
@@ -109,6 +126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DefenseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/attacks': {
+      id: '/attacks'
+      path: '/attacks'
+      fullPath: '/attacks'
+      preLoaderRoute: typeof AttacksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -121,6 +145,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AttacksRoute: AttacksRoute,
   DefenseRoute: DefenseRoute,
   LabRoute: LabRoute,
   SecureRoute: SecureRoute,

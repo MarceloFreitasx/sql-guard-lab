@@ -48,8 +48,16 @@ function Landing() {
         </motion.p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link
-            to="/vulnerable"
+        <Link
+          to="/attacks"
+          className="group flex items-center gap-2 rounded-md border border-[color:var(--red-neon)]/40 bg-[color:var(--red-neon)]/10 px-5 py-3 text-sm font-semibold text-[color:var(--red-neon)] transition hover:bg-[color:var(--red-neon)]/20 hover:shadow-[0_0_20px_rgba(255,71,87,0.3)]"
+        >
+          <ShieldAlert className="h-4 w-4" />
+          Attack Guide
+          <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+        </Link>
+        <Link
+          to="/vulnerable"
             className="group flex items-center gap-2 rounded-md border border-[color:var(--red-neon)]/40 bg-[color:var(--red-neon)]/10 px-5 py-3 text-sm font-semibold text-[color:var(--red-neon)] transition hover:bg-[color:var(--red-neon)]/20 hover:shadow-[0_0_20px_rgba(255,71,87,0.3)]"
           >
             <ShieldAlert className="h-4 w-4" />
@@ -111,14 +119,14 @@ function Landing() {
         <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
           <StepCard
             n="01"
-            title="Try to hack the vulnerable login"
-            desc="Use provided payloads or invent your own. Watch the SQL query update live as you type."
+            title="Study attack techniques"
+            desc="Browse the Attack Guide for auth bypass, UNION, blind, stacked queries, and encoding variants."
             tone="red"
           />
           <StepCard
             n="02"
-            title="Understand why it works"
-            desc="Every successful attack is followed by a plain-English breakdown of what the database did."
+            title="Try to hack the vulnerable login"
+            desc="Use 16+ payloads or invent your own. Watch the SQL query update live as you type."
             tone="cyan"
           />
           <StepCard

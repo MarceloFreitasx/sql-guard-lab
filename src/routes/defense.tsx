@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { BookOpen, Lightbulb, CheckSquare, Square } from "lucide-react";
@@ -54,6 +54,9 @@ function DefensePage() {
         </div>
         <h1 className="mt-4 font-mono text-3xl font-bold md:text-5xl">Defense Guide</h1>
         <p className="mt-2 text-muted-foreground">A practical reference for stopping SQL injection — and the rest.</p>
+        <Link to="/attacks" className="mt-4 inline-block text-sm text-[color:var(--cyan-neon)] hover:underline">
+          See attack techniques first →
+        </Link>
       </header>
 
       {/* Section 1 */}

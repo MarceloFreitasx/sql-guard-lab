@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { Shield, ShieldAlert, FlaskConical, BookOpen, Home } from "lucide-react";
+import { Shield, ShieldAlert, FlaskConical, BookOpen, Home, Swords } from "lucide-react";
 
 const links = [
   { to: "/", label: "Home", icon: Home },
+  { to: "/attacks", label: "Attacks", icon: Swords },
   { to: "/vulnerable", label: "Vulnerable", icon: ShieldAlert },
   { to: "/secure", label: "Secure", icon: Shield },
   { to: "/lab", label: "Lab", icon: FlaskConical },

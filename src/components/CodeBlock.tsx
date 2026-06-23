@@ -7,38 +7,60 @@ type Props = {
   className?: string;
 };
 
-// Very small SQL/PHP/JS highlighter — enough to feel alive without bundling Prism.
-function highlight(code: string, language: string) {
-  const escape = (s: string) =>
-    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const KEYWORDS: Record<string, RegExp> = {
+  sql: /\b(SELECT|FROM|WHERE|AND|OR|INSERT|INTO|VALUES|UPDATE|SET|DELETE|UNION|JOIN|ON|AS|LIMIT|ORDER|BY|GROUP|HAVING|TRUE|FALSE|NULL)\b/g,
+  php: /\b(function|return|if|else|new|class|public|private|protected|use|echo|null|true|false|try|catch|throw|foreach|as)\b/g,
+  js: /\b(function|return|const|let|var|if|else|new|class|import|export|from|null|true|false|try|catch|throw|async|await|of|in)\b/g,
+};
 
-  let out = escape(code);
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 
-  const keywords: Record<string, RegExp> = {
-    sql: /\b(SELECT|FROM|WHERE|AND|OR|INSERT|INTO|VALUES|UPDATE|SET|DELETE|UNION|JOIN|ON|AS|LIMIT|ORDER|BY|GROUP|HAVING|TRUE|FALSE|NULL)\b/g,
-    php: /\b(function|return|if|else|new|class|public|private|protected|use|echo|null|true|false|try|catch|throw|foreach|as)\b/g,
-    js: /\b(function|return|const|let|var|if|else|new|class|import|export|from|null|true|false|try|catch|throw|async|await|of|in)\b/g,
+function span(color: string, text: string, extra = ""): string {
+  return `<span style="color:${color}${extra}">${text}</span>`;
+}
+
+function highlight(code: string, language: string): string {
+  const tokens: string[] = [];
+  const stash = (html: string) => {
+    const id = tokens.length;
+    tokens.push(html);
+    return `\uE000HL${id}\uE001`;
   };
 
-  const kwRe = keywords[language] ?? keywords.js;
+  let out = escapeHtml(code);
 
-  // strings
-  out = out.replace(
-    /(&quot;[^&]*?&quot;|&#039;[^&]*?&#039;|"[^"]*"|'[^']*')/g,
-    (m) => `<span style="color:#7ee787">${m}</span>`,
-  );
-  // comments
-  out = out.replace(/(--[^\n]*|#[^\n]*|\/\/[^\n]*|\/\*[\s\S]*?\*\/)/g, (m) => `<span style="color:#8b949e;font-style:italic">${m}</span>`);
-  // keywords
-  out = out.replace(kwRe, (m) => `<span style="color:#79c0ff;font-weight:600">${m}</span>`);
-  // numbers
-  out = out.replace(/\b(\d+)\b/g, `<span style="color:#ffa657">$1</span>`);
-  // php variables
+  // Block comments
+  out = out.replace(/\/\*[\s\S]*?\*\//g, (m) => stash(span("#8b949e", m, ";font-style:italic")));
+
+  // Full-line // comments first — before strings, so payloads inside comments stay literal
+  out = out.replace(/\/\/[^\n]*/g, (m) => stash(span("#8b949e", m, ";font-style:italic")));
+
+  // Quoted strings (single and double)
+  out = out.replace(/(&quot;[^&]*?&quot;|&#039;[^&]*?&#039;|"[^"]*"|'[^']*')/g, (m) => stash(span("#7ee787", m)));
+
+  // Remaining line comments (-- and #), e.g. SQL-style
+  out = out.replace(/(--[^\n]*|#[^\n]*)/g, (m) => stash(span("#8b949e", m, ";font-style:italic")));
+
+  const kwRe = KEYWORDS[language] ?? KEYWORDS.js;
+  out = out.replace(kwRe, (m) => stash(span("#79c0ff", m, ";font-weight:600")));
+
+  out = out.replace(/\b(\d+)\b/g, (m) => stash(span("#ffa657", m)));
+
   if (language === "php") {
-    out = out.replace(/(\$[A-Za-z_]\w*)/g, `<span style="color:#ff7b72">$1</span>`);
+    out = out.replace(/(\$[A-Za-z_]\w*)/g, (m) => stash(span("#ff7b72", m)));
   }
-  // placeholders
-  out = out.replace(/\?/g, `<span style="color:#d2a8ff;font-weight:600">?</span>`);
+
+  out = out.replace(/\?/g, () => stash(span("#d2a8ff", "?", ";font-weight:600")));
+
+  // Expand nested placeholders (e.g. strings tokenized inside a later pass)
+  const placeholder = /\uE000HL(\d+)\uE001/g;
+  let prev = "";
+  while (prev !== out) {
+    prev = out;
+    out = out.replace(placeholder, (_, id) => tokens[Number(id)] ?? "");
+  }
 
   return out;
 }
