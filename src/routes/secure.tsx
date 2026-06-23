@@ -9,7 +9,10 @@ export const Route = createFileRoute("/secure")({
   head: () => ({
     meta: [
       { title: "Secure Login — SQLGuard" },
-      { name: "description", content: "Hardened login using prepared statements — SQL injection blocked." },
+      {
+        name: "description",
+        content: "Hardened login using prepared statements — SQL injection blocked.",
+      },
     ],
   }),
   component: SecurePage,
@@ -27,11 +30,11 @@ function SecurePage() {
 
   return (
     <div>
-      <div className="border-b border-[color:var(--green-neon)]/30 bg-[color:var(--green-neon)]/10">
+      <div className="border-b border-[color:var(--green-neon)]/25 bg-[color:var(--green-neon)]/8">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:px-6">
-          <ShieldCheck className="h-5 w-5 shrink-0 text-[color:var(--green-neon)]" />
-          <p className="font-mono text-xs font-semibold tracking-wide text-[color:var(--green-neon)] md:text-sm">
-            ✅ HARDENED VERSION — SQL Injection Protected
+          <ShieldCheck className="h-4 w-4 shrink-0 text-[color:var(--green-neon)]" />
+          <p className="font-mono text-xs font-medium tracking-wide text-[color:var(--green-neon)] md:text-sm">
+            Hardened version — SQL injection protected
           </p>
         </div>
       </div>
@@ -45,7 +48,8 @@ function SecurePage() {
             </div>
             <h1 className="mt-3 font-mono text-3xl font-bold md:text-4xl">Secure Login</h1>
             <p className="mt-2 text-muted-foreground">
-              Same form, very different backend. Input is bound as a parameter — never parsed as SQL.
+              Same form, very different backend. Input is bound as a parameter — never parsed as
+              SQL.
             </p>
           </header>
 
@@ -55,8 +59,18 @@ function SecurePage() {
               Protected
             </div>
             <form onSubmit={submit} className="space-y-4">
-              <Field label="Username" value={username} onChange={setUsername} placeholder="e.g. admin" />
-              <Field label="Password" value={password} onChange={setPassword} placeholder="••••••••" />
+              <Field
+                label="Username"
+                value={username}
+                onChange={setUsername}
+                placeholder="e.g. admin"
+              />
+              <Field
+                label="Password"
+                value={password}
+                onChange={setPassword}
+                placeholder="••••••••"
+              />
               <button
                 type="submit"
                 className="w-full rounded-md bg-[color:var(--green-neon)] py-2.5 font-semibold text-[#0d1117] transition hover:opacity-90"
@@ -68,12 +82,17 @@ function SecurePage() {
 
           <div className="rounded-xl border border-[#30363d] bg-[#0d1117]">
             <div className="border-b border-[#30363d] bg-[#161b22] px-4 py-2">
-              <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">Prepared Statement Preview</span>
+              <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                Prepared Statement Preview
+              </span>
             </div>
             <pre className="overflow-x-auto p-4 font-mono text-sm leading-relaxed">
-              <span className="text-[#79c0ff]">SELECT</span> * <span className="text-[#79c0ff]">FROM</span> users{" "}
-              <span className="text-[#79c0ff]">WHERE</span> username = <span className="text-[#d2a8ff] font-bold">?</span>{" "}
-              <span className="text-[#79c0ff]">AND</span> password = <span className="text-[#d2a8ff] font-bold">?</span>
+              <span className="text-[#79c0ff]">SELECT</span> *{" "}
+              <span className="text-[#79c0ff]">FROM</span> users{" "}
+              <span className="text-[#79c0ff]">WHERE</span> username ={" "}
+              <span className="text-[#d2a8ff] font-bold">?</span>{" "}
+              <span className="text-[#79c0ff]">AND</span> password ={" "}
+              <span className="text-[#d2a8ff] font-bold">?</span>
             </pre>
             <div className="border-t border-[#30363d] bg-[#161b22]/50 p-4 font-mono text-xs">
               <div>
@@ -89,8 +108,9 @@ function SecurePage() {
                 </span>
               </div>
               <p className="mt-3 text-muted-foreground">
-                Even if you type <span className="font-mono text-[color:var(--cyan-neon)]">' OR '1'='1'--</span>, it is
-                stored as a literal string in the parameter — never parsed as SQL.
+                Even if you type{" "}
+                <span className="font-mono text-[color:var(--cyan-neon)]">' OR '1'='1'--</span>, it
+                is stored as a literal string in the parameter — never parsed as SQL.
               </p>
             </div>
           </div>
@@ -112,15 +132,21 @@ function SecurePage() {
                   <div>
                     <div className="flex items-center gap-3">
                       <CheckCircle2 className="h-7 w-7 text-[color:var(--green-neon)]" />
-                      <h2 className="font-mono text-2xl font-bold text-[color:var(--green-neon)]">ACCESS GRANTED ✅</h2>
+                      <h2 className="font-mono text-2xl font-bold text-[color:var(--green-neon)]">
+                        Access granted
+                      </h2>
                     </div>
-                    <p className="mt-2 text-sm">Welcome, <span className="font-mono">{result.matchedUser}</span>.</p>
+                    <p className="mt-2 text-sm">
+                      Welcome, <span className="font-mono">{result.matchedUser}</span>.
+                    </p>
                   </div>
                 ) : (
                   <div>
                     <div className="flex items-center gap-3">
                       <Lock className="h-7 w-7 text-[color:var(--green-neon)]" />
-                      <h2 className="font-mono text-2xl font-bold text-[color:var(--green-neon)]">ACCESS DENIED 🔒</h2>
+                      <h2 className="font-mono text-2xl font-bold text-[color:var(--green-neon)]">
+                        Access denied
+                      </h2>
                     </div>
                     <p className="mt-3 text-sm text-muted-foreground">{result.reason}</p>
                     <div className="mt-4 rounded-md border border-[color:var(--green-neon)]/30 bg-[#0d1117] p-3">
@@ -129,7 +155,9 @@ function SecurePage() {
                       </p>
                       <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-muted-foreground">
                         <li>Prepared statement separates SQL code from user data.</li>
-                        <li>Quotes and comments inside the value are treated as literal characters.</li>
+                        <li>
+                          Quotes and comments inside the value are treated as literal characters.
+                        </li>
                         <li>The database planner never sees the injected operators.</li>
                       </ul>
                     </div>
@@ -184,10 +212,22 @@ $stmt->execute();`}
   );
 }
 
-function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</label>
+      <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </label>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}

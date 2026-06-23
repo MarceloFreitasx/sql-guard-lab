@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { BookOpen, Lightbulb, CheckSquare, Square, ShieldCheck, ArrowRight } from "lucide-react";
 import { CodeBlock } from "../components/CodeBlock";
+import { Reveal } from "../components/Reveal";
 import { ATTACK_CATEGORIES, DEFENSE_BY_CATEGORY } from "../lib/sqli";
 
 export const Route = createFileRoute("/defense")({
@@ -53,7 +54,8 @@ function DefensePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 md:px-6">
-      <header className="text-center">
+      <Reveal>
+        <header className="text-center">
         <div className="inline-flex items-center gap-2 rounded-full border border-[#30363d] bg-[#161b22] px-3 py-1 text-xs text-muted-foreground">
           <BookOpen className="h-3 w-3" />
           Documentation
@@ -69,8 +71,9 @@ function DefensePage() {
           See attack techniques first →
         </Link>
       </header>
+      </Reveal>
 
-      {/* Section 1 */}
+      <Reveal>
       <section className="mt-14">
         <h2 className="font-mono text-2xl font-bold">1. The Problem</h2>
         <div className="mt-4 rounded-xl border border-[#30363d] bg-[#161b22] p-6">
@@ -95,8 +98,9 @@ function DefensePage() {
           </div>
         </div>
       </section>
+      </Reveal>
 
-      {/* Section 2 — Tabs */}
+      <Reveal>
       <section className="mt-14">
         <h2 className="font-mono text-2xl font-bold">2. The Fixes</h2>
 
@@ -181,8 +185,9 @@ header("Permissions-Policy: geolocation=(), microphone=()");`}
           )}
         </div>
       </section>
+      </Reveal>
 
-      {/* Attack -> Defense mapping */}
+      <Reveal>
       <section className="mt-14">
         <h2 className="font-mono text-2xl font-bold">3. Attack → Matching Defense</h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -228,8 +233,9 @@ header("Permissions-Policy: geolocation=(), microphone=()");`}
           })}
         </div>
       </section>
+      </Reveal>
 
-      {/* Checklist */}
+      <Reveal>
       <section className="mt-14">
         <h2 className="font-mono text-2xl font-bold">4. Checklist</h2>
         <p className="mt-1 text-sm text-muted-foreground">Tick each item as you ship it.</p>
@@ -264,6 +270,7 @@ header("Permissions-Policy: geolocation=(), microphone=()");`}
           {checked.size} / {CHECKLIST.length} measures applied
         </div>
       </section>
+      </Reveal>
     </div>
   );
 }

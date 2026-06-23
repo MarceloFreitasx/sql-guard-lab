@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Zap, Terminal as TermIcon, ShieldAlert, ShieldCheck, ListOrdered } from "lucide-react";
+import { Reveal } from "../components/Reveal";
 import {
   ATTACK_CATEGORIES,
   applyPayloadToFields,
@@ -52,6 +53,19 @@ function LabPage() {
   const [attempts, setAttempts] = useState(0);
   const [blocked, setBlocked] = useState(0);
   const [categoryCounts, setCategoryCounts] = useState<Partial<Record<AttackCategory, number>>>({});
+  const logContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = logContainerRef.current;
+    if (!el) return;
+    const scrollToEnd = () => {
+      el.scrollTop = el.scrollHeight;
+    };
+    requestAnimationFrame(() => {
+      scrollToEnd();
+      requestAnimationFrame(scrollToEnd);
+    });
+  }, [log]);
 
   useEffect(() => {
     if (!payloadId) return;
@@ -133,7 +147,8 @@ function LabPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 md:px-6">
-      <header className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
+      <Reveal>
+        <header className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
         <div>
           <h1 className="font-mono text-3xl font-bold md:text-4xl">SQL Injection Lab</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -158,7 +173,9 @@ function LabPage() {
           />
         </div>
       </header>
+      </Reveal>
 
+      <Reveal delay={0.06}>
       <div className="mt-3 flex flex-wrap gap-3">
         <div className="inline-flex gap-3 rounded-md border border-[#30363d] bg-[#161b22] px-3 py-1.5 font-mono text-xs">
           <span className="text-muted-foreground">
@@ -269,7 +286,10 @@ function LabPage() {
                 clear
               </button>
             </div>
-            <div className="h-[420px] overflow-y-auto p-4 font-mono text-xs leading-relaxed">
+            <div
+              ref={logContainerRef}
+              className="h-[420px] overflow-y-auto p-4 font-mono text-xs leading-relaxed"
+            >
               {log.map((l, i) => (
                 <motion.div
                   key={i}
@@ -312,6 +332,7 @@ function LabPage() {
           </Link>
         </div>
       </div>
+      </Reveal>
     </div>
   );
 }

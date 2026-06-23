@@ -11,6 +11,7 @@ import {
   ListOrdered,
 } from "lucide-react";
 import { CodeBlock } from "../components/CodeBlock";
+import { Reveal } from "../components/Reveal";
 import {
   ATTACK_CATEGORIES,
   applyPayloadToFields,
@@ -124,18 +125,17 @@ function VulnerablePage() {
 
   return (
     <div>
-      <div className="border-b border-[color:var(--red-neon)]/30 bg-[color:var(--red-neon)]/10">
+      <div className="border-b border-[color:var(--red-neon)]/25 bg-[color:var(--red-neon)]/8">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:px-6">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-[color:var(--red-neon)]" />
-          <p className="font-mono text-xs font-semibold tracking-wide text-[color:var(--red-neon)] md:text-sm">
-            ⚠️ THIS IS INTENTIONALLY INSECURE — FOR EDUCATIONAL PURPOSES ONLY
+          <AlertTriangle className="h-4 w-4 shrink-0 text-[color:var(--red-neon)]" />
+          <p className="font-mono text-xs font-medium tracking-wide text-[color:var(--red-neon)] md:text-sm">
+            Intentionally insecure — educational use only
           </p>
         </div>
       </div>
 
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 md:grid-cols-3 md:px-6">
-        {/* Main column: form, result, SQL preview, under the hood */}
-        <div className="space-y-6 md:col-span-2">
+        <Reveal className="space-y-6 md:col-span-2">
           <header>
             <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--red-neon)]/30 bg-[color:var(--red-neon)]/10 px-3 py-1 text-xs font-mono text-[color:var(--red-neon)]">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[color:var(--red-neon)]" />
@@ -199,7 +199,7 @@ function VulnerablePage() {
               </span>
               {(dangerousU || dangerousP) && (
                 <span className="font-mono text-xs text-[color:var(--red-neon)]">
-                  ⚠ dangerous input detected
+                  Dangerous input detected
                 </span>
               )}
             </div>
@@ -242,10 +242,9 @@ function VulnerablePage() {
           <ExplainQuery username={username} password={password} lastPayloadId={lastPayloadId} />
 
           <UnderTheHoodPanel />
-        </div>
+        </Reveal>
 
-        {/* Right column: payload library */}
-        <aside className="md:sticky md:top-24 md:self-start">
+        <Reveal delay={0.1} className="md:sticky md:top-24 md:self-start">
           <PayloadLibrary
             hintOpen={hintOpen}
             onToggleHint={() => setHintOpen((o) => !o)}
@@ -253,7 +252,7 @@ function VulnerablePage() {
             onToggleCategory={(id) => setOpenCategory((cur) => (cur === id ? null : id))}
             onApplyPayload={applyPayload}
           />
-        </aside>
+        </Reveal>
       </div>
     </div>
   );

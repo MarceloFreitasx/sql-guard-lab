@@ -1,15 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  ShieldAlert,
-  Shield,
-  Database,
-  Code2,
-  Zap,
-  ListOrdered,
-  BookOpen,
-} from "lucide-react";
+import { ArrowRight, Database, Code2, Zap, ListOrdered, ChevronRight } from "lucide-react";
+import { PageHeader } from "../components/PageHeader";
+import { ThreatStatsBar } from "../components/ThreatStatsBar";
+import { HeroQueryPreview } from "../components/HeroQueryPreview";
+import { LearningPathTimeline } from "../components/LearningPathTimeline";
+import { Reveal, RevealStagger } from "../components/Reveal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -32,209 +27,155 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-20">
-      {/* Hero */}
-      <section className="relative text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 rounded-full border border-[#30363d] bg-[#161b22] px-3 py-1 text-xs text-muted-foreground"
-        >
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[color:var(--green-neon)]" />
-          Live interactive cybersecurity lab
-        </motion.div>
+    <>
+      {/* Hero — copy left, live query preview right */}
+      <div className="mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-14">
+        <section className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-12 xl:gap-16">
+          <div className="flex flex-col justify-center lg:min-h-[22rem]">
+            <Reveal>
+              <p className="section-kicker">Interactive security lab</p>
+              <p
+                className="glitch-text mt-3 font-mono text-4xl font-bold tracking-tight md:text-5xl lg:text-[3.25rem]"
+                aria-hidden="true"
+              >
+                SQL<span className="text-[color:var(--cyan-neon)]">Guard</span>
+              </p>
+              <h1 className="sr-only">
+                SQLGuard — Learn SQL injection by breaking and fixing a login
+              </h1>
+              <p className="mt-4 text-xl font-semibold leading-snug tracking-tight text-foreground md:text-2xl lg:text-[1.75rem]">
+                Learn SQL injection by <span className="text-[color:var(--red-neon)]">breaking</span>{" "}
+                and <span className="text-[color:var(--green-neon)]">fixing</span> a login.
+              </p>
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
+                SQLGuard is a hands-on teaching environment. Fire real payloads at a simulated
+                vulnerable form, trace each step of the attack, then see how prepared statements stop
+                the same input.
+              </p>
 
-        <h1
-          data-text="SQLGuard"
-          className="glitch-text mt-6 font-mono text-6xl font-extrabold tracking-tight md:text-8xl"
-          style={{ color: "white" }}
-        >
-          SQL<span className="text-[color:var(--cyan-neon)]">Guard</span>
-        </h1>
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground md:text-xl"
-        >
-          Understanding SQL Injection —{" "}
-          <span className="text-[color:var(--red-neon)]">From Attack</span>{" "}
-          <span className="text-[color:var(--green-neon)]">to Defense</span>
-        </motion.p>
-
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
-          <Link
-            to="/walkthrough"
-            className="group flex items-center gap-2 rounded-md bg-[color:var(--cyan-neon)] px-5 py-3 text-sm font-semibold text-[#0d1117] transition hover:shadow-[0_0_25px_rgba(0,212,255,0.4)]"
-          >
-            <ListOrdered className="h-4 w-4" />
-            Start the Step-by-Step Walkthrough
-            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-          </Link>
-          <Link
-            to="/attacks"
-            className="group flex items-center gap-2 rounded-md border border-[color:var(--red-neon)]/40 bg-[color:var(--red-neon)]/10 px-5 py-3 text-sm font-semibold text-[color:var(--red-neon)] transition hover:bg-[color:var(--red-neon)]/20 hover:shadow-[0_0_20px_rgba(255,71,87,0.3)]"
-          >
-            <ShieldAlert className="h-4 w-4" />
-            Attack Guide
-            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-          </Link>
-          <Link
-            to="/vulnerable"
-            className="group flex items-center gap-2 rounded-md border border-[color:var(--red-neon)]/40 bg-[color:var(--red-neon)]/10 px-5 py-3 text-sm font-semibold text-[color:var(--red-neon)] transition hover:bg-[color:var(--red-neon)]/20 hover:shadow-[0_0_20px_rgba(255,71,87,0.3)]"
-          >
-            <ShieldAlert className="h-4 w-4" />
-            Try the Vulnerable Login
-            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-          </Link>
-          <Link
-            to="/secure"
-            className="group flex items-center gap-2 rounded-md border border-[color:var(--green-neon)]/40 bg-[color:var(--green-neon)]/10 px-5 py-3 text-sm font-semibold text-[color:var(--green-neon)] transition hover:bg-[color:var(--green-neon)]/20 hover:shadow-[0_0_20px_rgba(46,213,115,0.3)]"
-          >
-            <Shield className="h-4 w-4" />
-            Try the Secure Login
-            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-          </Link>
-        </div>
-      </section>
-
-      {/* What is SQLi */}
-      <section className="mt-24">
-        <h2 className="text-center font-mono text-3xl font-bold md:text-4xl">
-          What is <span className="text-[color:var(--cyan-neon)]">SQL Injection</span>?
-        </h2>
-        <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
-          When user input is concatenated directly into a SQL query, an attacker can break out of
-          the string and rewrite the query's logic.
-        </p>
-
-        <div className="mt-10 rounded-xl border border-[#30363d] bg-[#161b22] p-6 md:p-10">
-          <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-5">
-            <FlowCard icon={Code2} title="User Input" sub={`' OR '1'='1' --`} tone="red" />
-            <Arrow />
-            <FlowCard icon={Zap} title="SQL Query" sub="String concatenation" tone="cyan" />
-            <Arrow />
-            <FlowCard icon={Database} title="Database" sub="Returns ALL rows" tone="red" />
+              <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                <Link
+                  to="/walkthrough"
+                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-md bg-[color:var(--cyan-neon)] px-5 py-2.5 text-sm font-semibold text-[color:var(--bg-base)] transition-colors duration-200 hover:bg-[#7dd3fc]"
+                >
+                  <ListOrdered className="h-4 w-4" />
+                  Start walkthrough
+                </Link>
+                <Link
+                  to="/lab"
+                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border border-[color:var(--bg-border)] bg-[color:var(--bg-elevated)] px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-[color:var(--cyan-neon)]/40"
+                >
+                  Open attack lab
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </Reveal>
           </div>
 
-          <div className="mt-8 rounded-lg border border-[#30363d] bg-[#0d1117] p-4 font-mono text-sm">
-            <div className="text-muted-foreground">Intended query:</div>
-            <div className="mt-1">
-              <span className="text-[#79c0ff]">SELECT</span> *{" "}
-              <span className="text-[#79c0ff]">FROM</span> users{" "}
-              <span className="text-[#79c0ff]">WHERE</span> username=
-              <span className="text-[#7ee787]">'alice'</span>{" "}
-              <span className="text-[#79c0ff]">AND</span> password=
-              <span className="text-[#7ee787]">'secret'</span>
+          <Reveal delay={0.12} y={24}>
+            <HeroQueryPreview />
+          </Reveal>
+        </section>
+      </div>
+
+      {/* Full-width threat stats band */}
+      <ThreatStatsBar fullWidth />
+
+      <div className="mx-auto max-w-7xl px-4 pb-16 md:px-6">
+        <Reveal>
+          <section className="mt-16 md:mt-20">
+            <PageHeader
+              kicker="Concept"
+              title="What is SQL injection?"
+              description="When user input is concatenated directly into a SQL string, an attacker can break out of the value and rewrite the query logic."
+              align="center"
+            />
+
+            <div className="mt-10 panel p-6 md:p-8">
+              <div className="grid grid-cols-1 items-center gap-4 md:grid-cols-[1fr_auto_1fr_auto_1fr]">
+                <RevealStagger index={0}>
+                  <FlowCard icon={Code2} title="User input" sub={`' OR '1'='1' --`} tone="red" />
+                </RevealStagger>
+                <ChevronRight className="mx-auto hidden h-5 w-5 text-muted-foreground md:block" />
+                <RevealStagger index={1}>
+                  <FlowCard icon={Zap} title="Broken query" sub="String concatenation" tone="cyan" />
+                </RevealStagger>
+                <ChevronRight className="mx-auto hidden h-5 w-5 text-muted-foreground md:block" />
+                <RevealStagger index={2}>
+                  <FlowCard icon={Database} title="Database" sub="Returns every row" tone="red" />
+                </RevealStagger>
+              </div>
             </div>
-            <div className="mt-4 text-muted-foreground">After injection:</div>
-            <div className="mt-1">
-              <span className="text-[#79c0ff]">SELECT</span> *{" "}
-              <span className="text-[#79c0ff]">FROM</span> users{" "}
-              <span className="text-[#79c0ff]">WHERE</span> username=
-              <span className="text-[color:var(--red-neon)]">''</span>{" "}
-              <span className="rounded bg-[color:var(--red-neon)]/15 px-1 text-[color:var(--red-neon)]">
-                OR '1'='1' --
-              </span>
-              <span className="text-muted-foreground">' AND password='...'</span>
+          </section>
+        </Reveal>
+
+        <Reveal>
+          <section className="mt-24">
+            <PageHeader
+              kicker="Curriculum"
+              title="Your learning path"
+              description="Four stops — from first exploit to production-ready defenses."
+              align="center"
+            />
+
+            <LearningPathTimeline />
+          </section>
+        </Reveal>
+
+        <Reveal>
+          <section className="mt-24">
+            <PageHeader kicker="Workflow" title="How the demo works" />
+
+            <div className="mt-8 grid grid-cols-1 gap-3 md:grid-cols-3">
+              <RevealStagger index={0}>
+                <StepCard
+                  n="01"
+                  title="Study attack techniques"
+                  desc="Auth bypass, UNION, blind probes, stacked queries, and encoding variants — each with impact notes."
+                  tone="red"
+                />
+              </RevealStagger>
+              <RevealStagger index={1}>
+                <StepCard
+                  n="02"
+                  title="Experiment in the lab"
+                  desc="Fire payloads at the simulated backend and read the terminal output line by line."
+                  tone="cyan"
+                />
+              </RevealStagger>
+              <RevealStagger index={2}>
+                <StepCard
+                  n="03"
+                  title="Compare secure code"
+                  desc="See the vulnerable PHP side by side with parameterized queries that neutralize the attack."
+                  tone="green"
+                />
+              </RevealStagger>
             </div>
+          </section>
+        </Reveal>
+
+        <Reveal>
+          <section className="mt-24 panel p-8 md:flex md:items-center md:justify-between md:p-10">
+          <div>
+            <p className="section-kicker">Ready?</p>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight">Enter the attack lab</h3>
+            <p className="mt-2 max-w-md text-sm text-muted-foreground">
+              No setup, no real database — just a safe sandbox for learning offensive and defensive
+              SQL techniques.
+            </p>
           </div>
-        </div>
-      </section>
-
-      {/* Learning path */}
-      <section className="mt-24">
-        <h2 className="text-center font-mono text-3xl font-bold md:text-4xl">
-          Your <span className="text-[color:var(--cyan-neon)]">learning path</span>
-        </h2>
-        <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
-          Follow the path from offense to defense. Each stop builds on the previous one.
-        </p>
-
-        <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-4">
-          <PathCard
-            n="1"
-            tone="red"
-            icon={ShieldAlert}
-            title="Attack"
-            desc="Break a real login with the vulnerable demo and a payload library."
-            to="/vulnerable"
-            cta="Try the attack"
-          />
-          <PathCard
-            n="2"
-            tone="cyan"
-            icon={ListOrdered}
-            title="Understand"
-            desc="Replay any payload step by step and watch the query get rewritten."
-            to="/walkthrough"
-            cta="Open walkthrough"
-          />
-          <PathCard
-            n="3"
-            tone="green"
-            icon={Shield}
-            title="Defend"
-            desc="Fire the same payload at the hardened login and see it blocked."
-            to="/secure"
-            cta="See the defense"
-          />
-          <PathCard
-            n="4"
-            tone="cyan"
-            icon={BookOpen}
-            title="Apply"
-            desc="Use the defense guide and checklist to secure your own apps."
-            to="/defense"
-            cta="Read the guide"
-          />
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="mt-24">
-        <h2 className="text-center font-mono text-3xl font-bold md:text-4xl">
-          How this demo works
-        </h2>
-        <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
-          <StepCard
-            n="01"
-            title="Study attack techniques"
-            desc="Browse the Attack Guide for auth bypass, UNION, blind, stacked queries, and encoding variants."
-            tone="red"
-          />
-          <StepCard
-            n="02"
-            title="Try to hack the vulnerable login"
-            desc="Use 16+ payloads or invent your own. Watch the SQL query update live as you type."
-            tone="cyan"
-          />
-          <StepCard
-            n="03"
-            title="See how the secure version stops it"
-            desc="Run the same payload against the hardened login and learn the exact defense that blocked it."
-            tone="green"
-          />
-        </div>
-      </section>
-
-      {/* CTA strip */}
-      <section className="mt-24 rounded-xl border border-[#30363d] bg-gradient-to-br from-[#161b22] to-[#0d1117] p-8 text-center md:p-12">
-        <h3 className="font-mono text-2xl font-bold md:text-3xl">Ready to break some queries?</h3>
-        <p className="mt-2 text-muted-foreground">
-          Jump into the lab — no setup, no real database, just learning.
-        </p>
-        <Link
-          to="/lab"
-          className="mt-6 inline-flex items-center gap-2 rounded-md bg-[color:var(--cyan-neon)] px-5 py-3 text-sm font-semibold text-[#0d1117] transition hover:shadow-[0_0_25px_rgba(0,212,255,0.4)]"
-        >
-          Enter the Attack Lab
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-      </section>
-    </div>
+          <Link
+            to="/lab"
+            className="mt-6 inline-flex cursor-pointer items-center gap-2 rounded-md bg-[color:var(--cyan-neon)] px-5 py-2.5 text-sm font-semibold text-[color:var(--bg-base)] transition-colors duration-200 hover:bg-[#7dd3fc] md:mt-0"
+          >
+            Launch lab
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          </section>
+        </Reveal>
+      </div>
+    </>
   );
 }
 
@@ -244,50 +185,10 @@ function FlowCard({
   sub,
   tone,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   title: string;
   sub: string;
   tone: "red" | "cyan" | "green";
-}) {
-  const color =
-    tone === "red"
-      ? "text-[color:var(--red-neon)] border-[color:var(--red-neon)]/40"
-      : tone === "green"
-        ? "text-[color:var(--green-neon)] border-[color:var(--green-neon)]/40"
-        : "text-[color:var(--cyan-neon)] border-[color:var(--cyan-neon)]/40";
-  return (
-    <div className={`rounded-lg border bg-[#0d1117] p-4 text-center ${color}`}>
-      <Icon className="mx-auto h-6 w-6" />
-      <div className="mt-2 text-sm font-semibold">{title}</div>
-      <div className="mt-1 truncate font-mono text-xs text-muted-foreground">{sub}</div>
-    </div>
-  );
-}
-
-function Arrow() {
-  return (
-    <div className="hidden justify-center text-[color:var(--cyan-neon)] md:flex">
-      <ArrowRight className="h-6 w-6" />
-    </div>
-  );
-}
-
-function PathCard({
-  n,
-  tone,
-  icon: Icon,
-  title,
-  desc,
-  to,
-  cta,
-}: {
-  n: string;
-  tone: "red" | "cyan" | "green";
-  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
-  title: string;
-  desc: string;
-  to: "/vulnerable" | "/walkthrough" | "/secure" | "/defense";
-  cta: string;
 }) {
   const color =
     tone === "red"
@@ -296,30 +197,11 @@ function PathCard({
         ? "var(--green-neon)"
         : "var(--cyan-neon)";
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      className="flex flex-col rounded-xl border border-[#30363d] bg-[#161b22] p-5"
-    >
-      <div className="flex items-center gap-3">
-        <span
-          className="flex h-9 w-9 items-center justify-center rounded-full font-mono text-sm font-bold"
-          style={{ color, background: `color-mix(in oklab, ${color} 15%, transparent)` }}
-        >
-          {n}
-        </span>
-        <Icon className="h-5 w-5" style={{ color }} />
-      </div>
-      <h3 className="mt-3 text-lg font-semibold">{title}</h3>
-      <p className="mt-1 flex-1 text-sm text-muted-foreground">{desc}</p>
-      <Link
-        to={to}
-        className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold hover:underline"
-        style={{ color }}
-      >
-        {cta}
-        <ArrowRight className="h-4 w-4" />
-      </Link>
-    </motion.div>
+    <div className="panel-inset p-4 text-center">
+      <Icon className="mx-auto h-5 w-5" style={{ color }} />
+      <div className="mt-2 text-sm font-medium">{title}</div>
+      <div className="mt-1 truncate font-mono text-xs text-muted-foreground">{sub}</div>
+    </div>
   );
 }
 
@@ -334,31 +216,19 @@ function StepCard({
   desc: string;
   tone: "red" | "cyan" | "green";
 }) {
-  const accent =
+  const color =
     tone === "red"
       ? "var(--red-neon)"
       : tone === "green"
         ? "var(--green-neon)"
         : "var(--cyan-neon)";
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      className="rounded-xl border border-[#30363d] bg-[#161b22] p-6"
-    >
-      <div
-        className="font-mono text-4xl font-bold"
-        style={{
-          color: `var(--${tone === "red" ? "red-neon" : tone === "green" ? "green-neon" : "cyan-neon"})`,
-        }}
-      >
+    <div className="panel p-6">
+      <span className="font-mono text-sm font-medium" style={{ color }}>
         {n}
-      </div>
-      <h3 className="mt-3 text-lg font-semibold">{title}</h3>
-      <p className="mt-2 text-sm text-muted-foreground">{desc}</p>
-      <div
-        className="mt-4 h-px w-12"
-        style={{ background: `color-mix(in oklab, ${accent} 60%, transparent)` }}
-      />
-    </motion.div>
+      </span>
+      <h3 className="mt-3 text-base font-semibold">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{desc}</p>
+    </div>
   );
 }

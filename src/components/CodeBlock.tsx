@@ -31,30 +31,24 @@ function highlight(code: string, language: string): string {
 
   let out = escapeHtml(code);
 
-  // Block comments
-  out = out.replace(/\/\*[\s\S]*?\*\//g, (m) => stash(span("#8b949e", m, ";font-style:italic")));
-
-  // Full-line // comments first — before strings, so payloads inside comments stay literal
-  out = out.replace(/\/\/[^\n]*/g, (m) => stash(span("#8b949e", m, ";font-style:italic")));
-
-  // Quoted strings (single and double)
-  out = out.replace(/(&quot;[^&]*?&quot;|&#039;[^&]*?&#039;|"[^"]*"|'[^']*')/g, (m) => stash(span("#7ee787", m)));
-
-  // Remaining line comments (-- and #), e.g. SQL-style
-  out = out.replace(/(--[^\n]*|#[^\n]*)/g, (m) => stash(span("#8b949e", m, ";font-style:italic")));
+  out = out.replace(/\/\*[\s\S]*?\*\//g, (m) => stash(span("#64748b", m, ";font-style:italic")));
+  out = out.replace(/\/\/[^\n]*/g, (m) => stash(span("#64748b", m, ";font-style:italic")));
+  out = out.replace(/(&quot;[^&]*?&quot;|&#039;[^&]*?&#039;|"[^"]*"|'[^']*')/g, (m) =>
+    stash(span("#86efac", m)),
+  );
+  out = out.replace(/(--[^\n]*|#[^\n]*)/g, (m) => stash(span("#64748b", m, ";font-style:italic")));
 
   const kwRe = KEYWORDS[language] ?? KEYWORDS.js;
-  out = out.replace(kwRe, (m) => stash(span("#79c0ff", m, ";font-weight:600")));
+  out = out.replace(kwRe, (m) => stash(span("#7dd3fc", m, ";font-weight:600")));
 
-  out = out.replace(/\b(\d+)\b/g, (m) => stash(span("#ffa657", m)));
+  out = out.replace(/\b(\d+)\b/g, (m) => stash(span("#fdba74", m)));
 
   if (language === "php") {
-    out = out.replace(/(\$[A-Za-z_]\w*)/g, (m) => stash(span("#ff7b72", m)));
+    out = out.replace(/(\$[A-Za-z_]\w*)/g, (m) => stash(span("#fca5a5", m)));
   }
 
-  out = out.replace(/\?/g, () => stash(span("#d2a8ff", "?", ";font-weight:600")));
+  out = out.replace(/\?/g, () => stash(span("#c4b5fd", "?", ";font-weight:600")));
 
-  // Expand nested placeholders (e.g. strings tokenized inside a later pass)
   const placeholder = /\uE000HL(\d+)\uE001/g;
   let prev = "";
   while (prev !== out) {
@@ -72,18 +66,27 @@ export function CodeBlock({ code, language = "sql", className = "" }: Props) {
       await navigator.clipboard.writeText(code);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
-    } catch {}
+    } catch {
+      /* clipboard unavailable */
+    }
   };
 
   return (
-    <div className={`group relative overflow-hidden rounded-lg border border-[#30363d] bg-[#0d1117] ${className}`}>
-      <div className="flex items-center justify-between border-b border-[#30363d] bg-[#161b22] px-3 py-1.5">
-        <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{language}</span>
+    <div className={`panel-inset overflow-hidden ${className}`}>
+      <div className="flex items-center justify-between border-b border-[color:var(--bg-border)] bg-[color:var(--bg-elevated)] px-3 py-2">
+        <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+          {language}
+        </span>
         <button
+          type="button"
           onClick={copy}
-          className="flex items-center gap-1 rounded px-2 py-0.5 text-[11px] text-muted-foreground transition hover:bg-[#30363d] hover:text-white"
+          className="flex cursor-pointer items-center gap-1 rounded px-2 py-0.5 text-[11px] text-muted-foreground transition-colors duration-200 hover:bg-[color:var(--bg-border)] hover:text-foreground"
         >
-          {copied ? <Check className="h-3 w-3 text-[color:var(--green-neon)]" /> : <Copy className="h-3 w-3" />}
+          {copied ? (
+            <Check className="h-3 w-3 text-[color:var(--green-neon)]" />
+          ) : (
+            <Copy className="h-3 w-3" />
+          )}
           {copied ? "Copied" : "Copy"}
         </button>
       </div>

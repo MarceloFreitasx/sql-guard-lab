@@ -44,8 +44,12 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">This page didn't load</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Something went wrong. Try again or head home.</p>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          This page didn't load
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Something went wrong. Try again or head home.
+        </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -56,7 +60,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           >
             Try again
           </button>
-          <a href="/" className="rounded-md border border-[#30363d] bg-[#161b22] px-4 py-2 text-sm font-medium">
+          <a
+            href="/"
+            className="rounded-md border border-[#30363d] bg-[#161b22] px-4 py-2 text-sm font-medium"
+          >
             Go home
           </a>
         </div>
@@ -88,7 +95,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap",
       },
     ],
   }),
@@ -123,12 +130,17 @@ function RootComponent() {
         <main className="relative">
           <Outlet />
         </main>
-        <footer className="border-t border-[#30363d] bg-[#0d1117]/70 py-8">
-          <div className="mx-auto max-w-7xl px-4 text-center text-xs text-muted-foreground">
-            <p className="font-mono">
-              <span className="text-[color:var(--cyan-neon)]">SQLGuard</span> — Educational demo · For learning purposes only
+        <footer className="mt-16 border-t border-[color:var(--bg-border)] py-10">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-center md:flex-row md:px-6 md:text-left">
+            <div>
+              <p className="font-mono text-sm font-medium text-foreground">SQLGuard</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Educational SQL injection lab · client-side simulation only
+              </p>
+            </div>
+            <p className="font-mono text-[11px] text-muted-foreground">
+              Group project · Cybersecurity awareness
             </p>
-            <p className="mt-1">Group Project · Cybersecurity Awareness</p>
           </div>
         </footer>
       </div>

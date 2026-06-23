@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Bug, Eye, EyeOff, FlaskConical, Radio, ShieldAlert, Swords } from "lucide-react";
 import { CodeBlock } from "../components/CodeBlock";
+import { Reveal } from "../components/Reveal";
 import {
   ATTACK_CATEGORIES,
   getPayloadsByCategory,
@@ -68,7 +69,8 @@ $sql = "SELECT * FROM users WHERE username='$user' ...";
 function AttacksPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 md:px-6">
-      <header className="text-center">
+      <Reveal>
+        <header className="text-center">
         <div className="inline-flex items-center gap-2 rounded-full border border-[#30363d] bg-[#161b22] px-3 py-1 text-xs text-muted-foreground">
           <Swords className="h-3 w-3" />
           Attack Reference
@@ -80,7 +82,9 @@ function AttacksPage() {
           Techniques, payloads, and PHP examples — then test each one in the lab.
         </p>
       </header>
+      </Reveal>
 
+      <Reveal>
       <section className="mt-14">
         <h2 className="font-mono text-2xl font-bold">Types of SQL injection</h2>
         <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -100,11 +104,13 @@ function AttacksPage() {
           ))}
         </div>
       </section>
+      </Reveal>
 
       {ATTACK_CATEGORIES.map((cat) => {
         const payloads = getPayloadsByCategory(cat.id);
         return (
-          <section key={cat.id} className="mt-14" id={cat.id}>
+          <Reveal key={cat.id}>
+          <section className="mt-14" id={cat.id}>
             <div className="flex items-center gap-2">
               <Bug className="h-5 w-5 text-[color:var(--red-neon)]" />
               <h2 className="font-mono text-2xl font-bold">{cat.label}</h2>
@@ -185,9 +191,11 @@ function AttacksPage() {
               </table>
             </div>
           </section>
+          </Reveal>
         );
       })}
 
+      <Reveal>
       <section className="mt-14 rounded-xl border border-[#30363d] bg-gradient-to-br from-[#161b22] to-[#0d1117] p-8">
         <h2 className="font-mono text-2xl font-bold">Vulnerable vs Secure</h2>
         <p className="mt-3 text-muted-foreground">
@@ -236,7 +244,9 @@ function AttacksPage() {
           Open Attack Lab
         </Link>
       </section>
+      </Reveal>
 
+      <Reveal>
       <section className="mt-10 text-center text-xs text-muted-foreground">
         <p>
           {ATTACK_CATEGORIES.length} categories ·{" "}
@@ -244,6 +254,7 @@ function AttacksPage() {
           payloads
         </p>
       </section>
+      </Reveal>
     </div>
   );
 }
