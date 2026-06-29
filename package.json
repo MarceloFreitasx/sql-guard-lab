@@ -11,6 +11,7 @@
     "predev:web": "node scripts/check-node.mjs",
     "prebuild": "node scripts/check-node.mjs",
     "dev": "TSR_TMP_DIR=node_modules/.cache/tanstack-tmp concurrently -k -n web,api -c blue,magenta \"vite dev\" \"php -S localhost:8080 -t backend backend/router.php\"",
+    "start": "npm run dev",
     "dev:web": "TSR_TMP_DIR=node_modules/.cache/tanstack-tmp vite dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",

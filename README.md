@@ -1,123 +1,120 @@
 # SQLGuard — Understanding SQL Injection from Attack to Defense
 
-> [!WARNING]
-> **Educational project only.** SQLGuard includes an intentionally vulnerable PHP login for
-> studying SQL injection in a controlled lab. Do **not** deploy the `backend/` folder to the
-> public internet. The React app uses a client-side simulation; the PHP backend uses a real
-> SQLite database on your machine.
+Interactive lab for learning SQL injection: attack a vulnerable login, trace the query, then see how prepared statements stop it.
 
-SQLGuard is an interactive lab that teaches SQL injection from both sides: how an attacker breaks a
-login, and how a developer stops it. You can fire real payloads at a simulated vulnerable login,
-replay any attack step by step, and see the exact defense (prepared statements) that neutralizes it.
+> [!WARNING]
+> **Educational use only.** Includes an intentionally vulnerable PHP API. Do not expose `backend/` to the public internet.
+
+---
+
+## Quick start
+
+**Requirements:** [Node.js 22](https://nodejs.org/) (or 20.19+), [PHP 8+](https://www.php.net/) with SQLite.
+
+### 1. One-time setup (Ubuntu / WSL)
+
+Skip this if Node 22 and PHP are already installed.
+
+```bash
+# Node 22 (Ubuntu often ships Node 18 — too old for this project)
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# PHP + SQLite extension
+sudo apt install -y php-cli php-sqlite3
+```
+
+Check:
+
+```bash
+node -v    # v22.x or v20.19+
+php -v     # 8.x
+php -m | grep -i sqlite
+```
+
+### 2. Run the project (one command)
+
+From the project folder:
+
+```bash
+npm install && npm start
+```
+
+`npm start` launches **everything**: React UI on port **3000** and PHP API on **8080** (proxied as `/api`).
+
+Open in the browser: **http://localhost:3000**
+
+Stop with `Ctrl+C`.
+
+### First-time clone (copy-paste)
+
+```bash
+git clone <repository-url>
+cd sql-guard-lab
+npm install && npm start
+```
+
+### Demo login (real SQLite database)
+
+| Username | Password   | Page          |
+| -------- | ---------- | ------------- |
+| `admin`  | `admin123` | `/secure`     |
+| `alice`  | `password1`| `/secure`     |
+
+SQLi bypass (vulnerable login only): on `/vulnerable`, username `' OR '1'='1' --` → redirects to **Dashboard**.
+
+---
+
+## Troubleshooting
+
+| Problem | Fix |
+| ------- | --- |
+| `Node … is too old` | Install Node 22 (see step 1 above), then `rm -rf node_modules && npm install` |
+| `PDO SQLite is not enabled` | `sudo apt install php-sqlite3` |
+| Port 3000 or 8080 in use | Stop other dev servers, or kill: `pkill -f "vite dev"` / `pkill -f "php -S localhost:8080"` |
+| UI works but login says backend offline | `npm start` must be running (not `npm run dev:web` alone) |
+
+**Frontend only** (no PHP, client-side simulation): `npm run dev:web`
+
+---
 
 ## What's inside
 
-The app has six interactive pages:
-
 | Page | Route | What it does |
 | --- | --- | --- |
-| Home | `/` | Overview, "what is SQL injection", and a guided learning path |
-| Attacks | `/attacks` | Reference guide of techniques with payload tables and severity |
-| Vulnerable | `/vulnerable` | Insecure login with live SQL preview and an "explain this query" panel |
-| Secure | `/secure` | Hardened login using prepared statements, side by side with the vulnerable code |
-| Lab | `/lab` | Playground with a payload library and a live terminal output |
-| Walkthrough | `/walkthrough` | Step-by-step, animated breakdown of an attack and its defense |
+| Home | `/` | Overview and learning path |
+| Walkthrough | `/walkthrough` | Step-by-step attack animation |
+| Attacks | `/attacks` | Technique reference and payloads |
+| Defense | `/defense` | How to harden applications |
+| Vulnerable | `/vulnerable` | Insecure login + real SQLite API |
+| Secure | `/secure` | Prepared statements + same payload library |
+| Dashboard | `/dashboard` | After login — shows leaked vs scoped user data |
+| Lab | `/lab` | Playground with terminal output |
 
 ## Tech stack
 
-- [TanStack Start](https://tanstack.com/start) + [TanStack Router](https://tanstack.com/router) (file-based routing)
-- [React 19](https://react.dev/)
-- [Tailwind CSS 4](https://tailwindcss.com/)
-- [Framer Motion](https://www.framer.com/motion/) for animations
-- [Vite 8](https://vite.dev/) build tooling
-- TypeScript
+- [TanStack Start](https://tanstack.com/start) + [React 19](https://react.dev/)
+- [Vite 8](https://vite.dev/) + [Tailwind CSS 4](https://tailwindcss.com/)
+- PHP 8 + SQLite (`backend/` JSON API)
 
-## Prerequisites
-
-- **Node.js 20.19+ or 22.12+** (required by Vite 8 and TanStack Start)
-- npm (comes with Node)
-- **PHP 8+** with `pdo_sqlite` for the real database (`sudo apt install php-sqlite3` on Debian/Ubuntu)
-
-Check your version:
-
-```bash
-node -v
-```
-
-### Upgrade Node on WSL/Ubuntu (no nvm)
-
-The default `apt install nodejs` on Ubuntu often ships Node 18, which is **too old** for this project.
-Use [NodeSource](https://github.com/nodesource/distributions) to install Node 22 system-wide:
-
-```bash
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt install -y nodejs
-node -v   # should print v22.x
-```
-
-Then reinstall dependencies (lockfile was built for a newer toolchain):
-
-```bash
-rm -rf node_modules
-npm install
-```
-
-> **Alternative:** [fnm](https://github.com/Schniz/fnm) is a lightweight version manager (not nvm) if you prefer per-project Node versions without replacing `/usr/bin/node`.
-
-## Install
-
-Clone the repository, then install the dependencies:
-
-```bash
-npm install
-```
-
-## Run the project (development)
-
-Start the React app **and** the PHP API in one command:
-
-```bash
-npm run dev
-```
-
-Then open **http://localhost:3000** (Vite proxies `/api` to PHP on `:8080`).
-
-**Prerequisites:** PHP 8+ with `pdo_sqlite` (`sudo apt install php-sqlite3` on Debian/Ubuntu).
-
-Frontend only (no database): `npm run dev:web`
-
-## Other scripts
+## Other commands
 
 | Command | Description |
 | --- | --- |
-| `npm run dev` | React + PHP backend together |
-| `npm run dev:web` | Frontend only (client-side simulation fallback) |
-| `npm run build` | Create a production build |
-| `npm run preview` | Preview the production build locally |
-| `npm run lint` | Run ESLint |
-| `npm run format` | Format the codebase with Prettier |
-| `npm run backend` | PHP + SQLite API only (`http://localhost:8080`) |
-
-## PHP backend (real database)
-
-Login on `/vulnerable` or `/secure` hits the real SQLite database via `/api/*`. After a successful login, you are redirected to **Dashboard**.
+| `npm start` | Same as `npm run dev` — UI + API together |
+| `npm run dev` | UI + API together |
+| `npm run dev:web` | UI only (no database) |
+| `npm run build` | Production build |
+| `npm run backend` | PHP API only (`http://localhost:8080`) |
 
 ## Project structure
 
 ```
-backend/         # PHP JSON API + SQLite (login endpoints for React)
-src/
-  routes/        # File-based routes (one file per page) + __root.tsx app shell
-  components/    # Shared UI components (Navbar, CodeBlock, ui/*)
-  lib/
-    sqli.ts      # SQL injection simulation, payload library, walkthrough steps
-  styles.css     # Global styles and theme tokens
+backend/     # PHP API + SQLite (auto-created at backend/data/app.db)
+src/routes/  # Pages (one file per route)
+src/lib/     # SQLi simulation, auth client, payload library
 ```
-
-> Routing note: every `.tsx` file in `src/routes/` is a page. `src/routeTree.gen.ts` is
-> auto-generated by TanStack Router — do not edit it by hand.
 
 ## Disclaimer
 
-This project is for learning and demonstration only. All "attacks" run against an in-browser
-simulation. The authors are not responsible for any misuse of the techniques shown here.
+For classroom and demonstration only. Techniques shown must not be used against systems you do not own or lack permission to test.
