@@ -1,9 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, Lock, CheckCircle2 } from "lucide-react";
 import { CodeBlock } from "../components/CodeBlock";
-import { simulateSecureLogin, type AuthResult } from "../lib/sqli";
+import { PayloadLibrary } from "../components/PayloadLibrary";
+import { loginSecure } from "../lib/auth-api";
+import { setAuthSession } from "../lib/auth-session";
+import { applyPayloadToFields, simulateSecureLogin, type AuthResult, type SqlPayload } from "../lib/sqli";
 
 export const Route = createFileRoute("/secure")({
   head: () => ({
@@ -19,13 +22,68 @@ export const Route = createFileRoute("/secure")({
 });
 
 function SecurePage() {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [result, setResult] = useState<AuthResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [backendNotice, setBackendNotice] = useState<string | null>(null);
+  const [hintOpen, setHintOpen] = useState(true);
+  const [openCategory, setOpenCategory] = useState<string | null>("auth_bypass");
 
-  const submit = (e: React.FormEvent) => {
+  const applyPayload = (payload: SqlPayload) => {
+    const fields = applyPayloadToFields(payload);
+    setUsername(fields.username);
+    setPassword(fields.password);
+    setResult(null);
+  };
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setResult(simulateSecureLogin(username, password));
+    setLoading(true);
+    setBackendNotice(null);
+
+    const local = simulateSecureLogin(username, password);
+
+    try {
+      const api = await loginSecure(username, password);
+      setResult({
+        granted: api.granted,
+        reason: api.reason,
+        query: api.query ?? local.query,
+        matchedUser: api.granted ? api.username : undefined,
+        attackType: local.attackType,
+        technique: local.technique,
+        impact: local.impact,
+        payloadId: local.payloadId,
+      });
+
+      if (api.granted && api.username) {
+        setAuthSession({
+          username: api.username,
+          mode: "secure",
+          query: api.query,
+          grantedAt: Date.now(),
+        });
+        navigate({ to: "/dashboard" });
+      }
+    } catch {
+      setBackendNotice(
+        "SQLite backend unavailable — showing client-side simulation. Run npm run backend in another terminal.",
+      );
+      setResult(local);
+      if (local.granted && local.matchedUser) {
+        setAuthSession({
+          username: local.matchedUser,
+          mode: "secure",
+          query: local.query,
+          grantedAt: Date.now(),
+        });
+        navigate({ to: "/dashboard" });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,8 +97,8 @@ function SecurePage() {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 md:grid-cols-2 md:px-6">
-        <div className="space-y-6">
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 md:grid-cols-3 md:px-6">
+        <div className="space-y-6 md:col-span-2">
           <header>
             <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--green-neon)]/40 bg-[color:var(--green-neon)]/10 px-3 py-1 text-xs font-mono text-[color:var(--green-neon)]">
               <CheckCircle2 className="h-3 w-3" />
@@ -49,7 +107,7 @@ function SecurePage() {
             <h1 className="mt-3 font-mono text-3xl font-bold md:text-4xl">Secure Login</h1>
             <p className="mt-2 text-muted-foreground">
               Same form, very different backend. Input is bound as a parameter — never parsed as
-              SQL.
+              SQL. Pick a payload from the library to verify the defense holds.
             </p>
           </header>
 
@@ -73,12 +131,19 @@ function SecurePage() {
               />
               <button
                 type="submit"
-                className="w-full rounded-md bg-[color:var(--green-neon)] py-2.5 font-semibold text-[#0d1117] transition hover:opacity-90"
+                disabled={loading}
+                className="w-full rounded-md bg-[color:var(--green-neon)] py-2.5 font-semibold text-[#0d1117] transition hover:opacity-90 disabled:opacity-60"
               >
-                Login (safe)
+                {loading ? "Checking database…" : "Login (safe)"}
               </button>
             </form>
           </div>
+
+          {backendNotice && (
+            <p className="rounded-lg border border-[#30363d] bg-[#161b22] px-4 py-3 text-sm text-muted-foreground">
+              {backendNotice}
+            </p>
+          )}
 
           <div className="rounded-xl border border-[#30363d] bg-[#0d1117]">
             <div className="border-b border-[#30363d] bg-[#161b22] px-4 py-2">
@@ -139,6 +204,12 @@ function SecurePage() {
                     <p className="mt-2 text-sm">
                       Welcome, <span className="font-mono">{result.matchedUser}</span>.
                     </p>
+                    <Link
+                      to="/dashboard"
+                      className="mt-4 inline-flex items-center gap-2 rounded-md bg-[color:var(--green-neon)] px-4 py-2 text-sm font-semibold text-[#0d1117] hover:opacity-90"
+                    >
+                      Go to protected dashboard →
+                    </Link>
                   </div>
                 ) : (
                   <div>
@@ -166,20 +237,18 @@ function SecurePage() {
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
 
-        {/* Diff panel */}
-        <div className="space-y-4 md:sticky md:top-24 md:self-start">
-          <h3 className="font-mono text-sm font-bold uppercase tracking-wider text-muted-foreground">
-            Vulnerable vs Secure — side by side
-          </h3>
-          <div>
-            <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--red-neon)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--red-neon)]">
-              ✗ Vulnerable
-            </div>
-            <CodeBlock
-              language="php"
-              code={`$user = $_POST['username'];
+          <div className="space-y-4">
+            <h3 className="font-mono text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              Vulnerable vs Secure — side by side
+            </h3>
+            <div>
+              <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--red-neon)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--red-neon)]">
+                ✗ Vulnerable
+              </div>
+              <CodeBlock
+                language="php"
+                code={`$user = $_POST['username'];
 $pass = $_POST['password'];
 
 $sql = "SELECT * FROM users
@@ -187,15 +256,15 @@ $sql = "SELECT * FROM users
         AND password='$pass'";
 
 $result = mysqli_query($db, $sql);`}
-            />
-          </div>
-          <div>
-            <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--green-neon)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--green-neon)]">
-              ✓ Secure
+              />
             </div>
-            <CodeBlock
-              language="php"
-              code={`$user = $_POST['username'];
+            <div>
+              <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--green-neon)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--green-neon)]">
+                ✓ Secure
+              </div>
+              <CodeBlock
+                language="php"
+                code={`$user = $_POST['username'];
 $pass = $_POST['password'];
 
 $stmt = $db->prepare(
@@ -204,8 +273,20 @@ $stmt = $db->prepare(
 );
 $stmt->bind_param("ss", $user, $pass);
 $stmt->execute();`}
-            />
+              />
+            </div>
           </div>
+        </div>
+
+        <div className="md:sticky md:top-24 md:self-start">
+          <PayloadLibrary
+            variant="secure"
+            hintOpen={hintOpen}
+            onToggleHint={() => setHintOpen((o) => !o)}
+            openCategory={openCategory}
+            onToggleCategory={(id) => setOpenCategory((cur) => (cur === id ? null : id))}
+            onApplyPayload={applyPayload}
+          />
         </div>
       </div>
     </div>

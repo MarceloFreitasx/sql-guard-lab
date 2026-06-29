@@ -1,9 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertTriangle,
-  ChevronDown,
   FlaskConical,
   Lock,
   Unlock,
@@ -11,13 +10,16 @@ import {
   ListOrdered,
 } from "lucide-react";
 import { CodeBlock } from "../components/CodeBlock";
+import { PayloadLibrary } from "../components/PayloadLibrary";
 import { Reveal } from "../components/Reveal";
+import { loginVulnerable } from "../lib/auth-api";
+import { setAuthSession } from "../lib/auth-session";
 import {
-  ATTACK_CATEGORIES,
+  altersLabQueryLogic,
   applyPayloadToFields,
+  explainLabMismatch,
   getCategoryLabel,
-  getPayloadsByCategory,
-  highlightDanger,
+  highlightLabQueryValue,
   isDangerous,
   simulateVulnerableLogin,
   type AuthResult,
@@ -95,19 +97,69 @@ export const Route = createFileRoute("/vulnerable")({
 });
 
 function VulnerablePage() {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [hintOpen, setHintOpen] = useState(true);
   const [openCategory, setOpenCategory] = useState<string | null>("auth_bypass");
   const [result, setResult] = useState<AuthResult | null>(null);
   const [lastPayloadId, setLastPayloadId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [backendNotice, setBackendNotice] = useState<string | null>(null);
 
-  const dangerousU = isDangerous(username);
-  const dangerousP = isDangerous(password);
+  const altersQuery = altersLabQueryLogic(username, password);
+  const sqlLikeU = isDangerous(username);
+  const sqlLikeP = isDangerous(password);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setResult(simulateVulnerableLogin(username, password));
+    setLoading(true);
+    setBackendNotice(null);
+
+    const local = simulateVulnerableLogin(username, password);
+
+    try {
+      const api = await loginVulnerable(username, password);
+      const merged: AuthResult = {
+        granted: api.granted,
+        reason: api.granted
+          ? local.reason || api.reason
+          : explainLabMismatch(username, password) ?? api.reason,
+        query: api.query ?? local.query,
+        matchedUser: api.granted ? api.username : undefined,
+        attackType: local.attackType,
+        technique: local.technique,
+        impact: local.impact,
+        payloadId: local.payloadId,
+      };
+      setResult(merged);
+
+      if (api.granted && api.username) {
+        setAuthSession({
+          username: api.username,
+          mode: "vulnerable",
+          query: api.query,
+          grantedAt: Date.now(),
+        });
+        navigate({ to: "/dashboard" });
+      }
+    } catch {
+      setBackendNotice(
+        "SQLite backend unavailable — showing client-side simulation. Run npm run backend in another terminal.",
+      );
+      setResult(local);
+      if (local.granted && local.matchedUser) {
+        setAuthSession({
+          username: local.matchedUser,
+          mode: "vulnerable",
+          query: local.query,
+          grantedAt: Date.now(),
+        });
+        navigate({ to: "/dashboard" });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const applyPayload = (payload: SqlPayload) => {
@@ -119,7 +171,7 @@ function VulnerablePage() {
   };
 
   const queryParts = useMemo(
-    () => ({ u: highlightDanger(username), p: highlightDanger(password) }),
+    () => ({ u: highlightLabQueryValue(username), p: highlightLabQueryValue(password) }),
     [username, password],
   );
 
@@ -159,9 +211,11 @@ function VulnerablePage() {
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="e.g. admin"
                   className={`w-full rounded-md border bg-[#0d1117] px-3 py-2 font-mono text-sm outline-none transition ${
-                    dangerousU
+                    altersQuery && sqlLikeU
                       ? "border-[color:var(--red-neon)] shadow-[0_0_12px_rgba(255,71,87,0.25)]"
-                      : "border-[#30363d] focus:border-[color:var(--cyan-neon)]"
+                      : sqlLikeU
+                        ? "border-[#ffa657]/60"
+                        : "border-[#30363d] focus:border-[color:var(--cyan-neon)]"
                   }`}
                 />
               </div>
@@ -175,20 +229,29 @@ function VulnerablePage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className={`w-full rounded-md border bg-[#0d1117] px-3 py-2 font-mono text-sm outline-none transition ${
-                    dangerousP
+                    altersQuery && sqlLikeP
                       ? "border-[color:var(--red-neon)] shadow-[0_0_12px_rgba(255,71,87,0.25)]"
-                      : "border-[#30363d] focus:border-[color:var(--cyan-neon)]"
+                      : sqlLikeP
+                        ? "border-[#ffa657]/60"
+                        : "border-[#30363d] focus:border-[color:var(--cyan-neon)]"
                   }`}
                 />
               </div>
               <button
                 type="submit"
-                className="w-full rounded-md bg-[color:var(--red-neon)] py-2.5 font-semibold text-white transition hover:opacity-90"
+                disabled={loading}
+                className="w-full rounded-md bg-[color:var(--red-neon)] py-2.5 font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
               >
-                Login (unsafe)
+                {loading ? "Checking database…" : "Login (unsafe)"}
               </button>
             </form>
           </div>
+
+          {backendNotice && (
+            <p className="rounded-lg border border-[#30363d] bg-[#161b22] px-4 py-3 text-sm text-muted-foreground">
+              {backendNotice}
+            </p>
+          )}
 
           <LoginResult result={result} onDismiss={() => setResult(null)} />
 
@@ -197,9 +260,15 @@ function VulnerablePage() {
               <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
                 Live SQL Query Preview
               </span>
-              {(dangerousU || dangerousP) && (
-                <span className="font-mono text-xs text-[color:var(--red-neon)]">
-                  Dangerous input detected
+              {(altersQuery || sqlLikeU || sqlLikeP) && (
+                <span
+                  className={`font-mono text-xs ${
+                    altersQuery ? "text-[color:var(--red-neon)]" : "text-[#ffa657]"
+                  }`}
+                >
+                  {altersQuery
+                    ? "Query logic altered"
+                    : "SQL-like text (stays inside quotes)"}
                 </span>
               )}
             </div>
@@ -239,7 +308,12 @@ function VulnerablePage() {
             </pre>
           </div>
 
-          <ExplainQuery username={username} password={password} lastPayloadId={lastPayloadId} />
+          <ExplainQuery
+            username={username}
+            password={password}
+            lastPayloadId={lastPayloadId}
+            show={altersQuery}
+          />
 
           <UnderTheHoodPanel />
         </Reveal>
@@ -333,9 +407,15 @@ function LoginResult({ result, onDismiss }: { result: AuthResult | null; onDismi
                 </div>
               </div>
               <Link
+                to="/dashboard"
+                className="mt-4 inline-flex items-center gap-2 rounded-md bg-[color:var(--red-neon)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+              >
+                Go to protected dashboard →
+              </Link>
+              <Link
                 to="/lab"
                 search={result.payloadId ? { payload: result.payloadId } : {}}
-                className="mt-4 inline-flex items-center gap-2 text-sm text-[color:var(--cyan-neon)] hover:underline"
+                className="mt-3 inline-flex items-center gap-2 text-sm text-[color:var(--cyan-neon)] hover:underline"
               >
                 <FlaskConical className="h-4 w-4" />
                 Replay in Attack Lab
@@ -344,108 +424,15 @@ function LoginResult({ result, onDismiss }: { result: AuthResult | null; onDismi
           ) : (
             <p className="mt-3 text-sm text-muted-foreground">{result.reason}</p>
           )}
+          {!result.granted && result.attackType && result.payloadId && (
+            <p className="mt-3 text-xs text-[#ffa657]">
+              Payload recognized as {getCategoryLabel(result.attackType)} — see the library badge
+              for whether it applies to this lab&apos;s SQL.
+            </p>
+          )}
         </motion.div>
       )}
     </AnimatePresence>
-  );
-}
-
-function PayloadLibrary({
-  hintOpen,
-  onToggleHint,
-  openCategory,
-  onToggleCategory,
-  onApplyPayload,
-}: {
-  hintOpen: boolean;
-  onToggleHint: () => void;
-  openCategory: string | null;
-  onToggleCategory: (id: string) => void;
-  onApplyPayload: (payload: SqlPayload) => void;
-}) {
-  return (
-    <div className="rounded-xl border border-[#30363d] bg-[#161b22]">
-      <button
-        type="button"
-        onClick={onToggleHint}
-        className="flex w-full items-center justify-between px-5 py-3 text-left"
-      >
-        <span className="text-sm font-semibold">Payload library</span>
-        <ChevronDown className={`h-4 w-4 transition ${hintOpen ? "rotate-180" : ""}`} />
-      </button>
-      <AnimatePresence>
-        {hintOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="max-h-[calc(100vh-10rem)] space-y-3 overflow-y-auto px-5 pb-5">
-              {ATTACK_CATEGORIES.map((cat) => {
-                const items = getPayloadsByCategory(cat.id);
-                if (items.length === 0) return null;
-                const isOpen = openCategory === cat.id;
-                return (
-                  <div key={cat.id} className="rounded-lg border border-[#30363d] bg-[#0d1117]">
-                    <button
-                      type="button"
-                      onClick={() => onToggleCategory(cat.id)}
-                      className="flex w-full items-center justify-between px-3 py-2 text-left"
-                    >
-                      <div>
-                        <span className="text-sm font-semibold">{cat.label}</span>
-                        <p className="text-xs text-muted-foreground">{cat.description}</p>
-                      </div>
-                      <ChevronDown
-                        className={`h-4 w-4 shrink-0 transition ${isOpen ? "rotate-180" : ""}`}
-                      />
-                    </button>
-                    {isOpen && (
-                      <div className="space-y-2 border-t border-[#30363d] p-3">
-                        {items.map((p) => (
-                          <div
-                            key={p.id}
-                            className="rounded-md border border-[#30363d] bg-[#161b22] p-3"
-                          >
-                            <div className="space-y-2">
-                              <div className="text-sm font-semibold">{p.name}</div>
-                              <div className="break-all font-mono text-xs text-[color:var(--cyan-neon)]">
-                                {p.payload}
-                              </div>
-                              <p className="text-xs text-muted-foreground">{p.desc}</p>
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                                Target: {p.field}
-                              </p>
-                              <div className="flex flex-wrap gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => onApplyPayload(p)}
-                                  className="rounded-md bg-[color:var(--red-neon)]/20 px-2 py-1 text-xs font-medium text-[color:var(--red-neon)] hover:bg-[color:var(--red-neon)]/30"
-                                >
-                                  Use payload
-                                </button>
-                                <Link
-                                  to="/lab"
-                                  search={{ payload: p.id }}
-                                  className="rounded-md border border-[#30363d] px-2 py-1 text-xs text-muted-foreground hover:text-white"
-                                >
-                                  Open in Lab
-                                </Link>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
   );
 }
 
@@ -453,13 +440,16 @@ function ExplainQuery({
   username,
   password,
   lastPayloadId,
+  show,
 }: {
   username: string;
   password: string;
   lastPayloadId: string | null;
+  show: boolean;
 }) {
   const fragments = useMemo(() => {
-    const tokens = [...highlightDanger(username), ...highlightDanger(password)].filter(
+    if (!show) return [];
+    const tokens = [...highlightLabQueryValue(username), ...highlightLabQueryValue(password)].filter(
       (t) => t.danger,
     );
     const seen = new Set<string>();
@@ -471,9 +461,9 @@ function ExplainQuery({
       unique.push(exp);
     }
     return unique;
-  }, [username, password]);
+  }, [username, password, show]);
 
-  if (fragments.length === 0) return null;
+  if (!show || fragments.length === 0) return null;
 
   return (
     <div className="rounded-xl border border-[color:var(--red-neon)]/30 bg-[color:var(--red-neon)]/5 p-5">

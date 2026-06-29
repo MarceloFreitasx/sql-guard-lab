@@ -14,6 +14,7 @@ import { Route as VulnerableRouteImport } from './routes/vulnerable'
 import { Route as SecureRouteImport } from './routes/secure'
 import { Route as LabRouteImport } from './routes/lab'
 import { Route as DefenseRouteImport } from './routes/defense'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AttacksRouteImport } from './routes/attacks'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -42,6 +43,11 @@ const DefenseRoute = DefenseRouteImport.update({
   path: '/defense',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AttacksRoute = AttacksRouteImport.update({
   id: '/attacks',
   path: '/attacks',
@@ -56,6 +62,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/attacks': typeof AttacksRoute
+  '/dashboard': typeof DashboardRoute
   '/defense': typeof DefenseRoute
   '/lab': typeof LabRoute
   '/secure': typeof SecureRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/attacks': typeof AttacksRoute
+  '/dashboard': typeof DashboardRoute
   '/defense': typeof DefenseRoute
   '/lab': typeof LabRoute
   '/secure': typeof SecureRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/attacks': typeof AttacksRoute
+  '/dashboard': typeof DashboardRoute
   '/defense': typeof DefenseRoute
   '/lab': typeof LabRoute
   '/secure': typeof SecureRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/attacks'
+    | '/dashboard'
     | '/defense'
     | '/lab'
     | '/secure'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/attacks'
+    | '/dashboard'
     | '/defense'
     | '/lab'
     | '/secure'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/attacks'
+    | '/dashboard'
     | '/defense'
     | '/lab'
     | '/secure'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AttacksRoute: typeof AttacksRoute
+  DashboardRoute: typeof DashboardRoute
   DefenseRoute: typeof DefenseRoute
   LabRoute: typeof LabRoute
   SecureRoute: typeof SecureRoute
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DefenseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/attacks': {
       id: '/attacks'
       path: '/attacks'
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AttacksRoute: AttacksRoute,
+  DashboardRoute: DashboardRoute,
   DefenseRoute: DefenseRoute,
   LabRoute: LabRoute,
   SecureRoute: SecureRoute,

@@ -1,11 +1,10 @@
 # SQLGuard — Understanding SQL Injection from Attack to Defense
 
 > [!WARNING]
-> **Educational project only.** SQLGuard is a teaching/demo application built for studying
-> SQL injection. It uses a **100% client-side simulation** of the SQL logic — there is **no real
-> database** and no real backend to attack. The intentionally "vulnerable" pages are safe to use and
-> exist purely to demonstrate how the attacks work and how to defend against them. Do **not** use any
-> of these techniques against systems you do not own or have explicit permission to test.
+> **Educational project only.** SQLGuard includes an intentionally vulnerable PHP login for
+> studying SQL injection in a controlled lab. Do **not** deploy the `backend/` folder to the
+> public internet. The React app uses a client-side simulation; the PHP backend uses a real
+> SQLite database on your machine.
 
 SQLGuard is an interactive lab that teaches SQL injection from both sides: how an attacker breaks a
 login, and how a developer stops it. You can fire real payloads at a simulated vulnerable login,
@@ -35,21 +34,35 @@ The app has six interactive pages:
 
 ## Prerequisites
 
-- **Node.js 20.19+ or 22.12+** (required by Vite 8)
+- **Node.js 20.19+ or 22.12+** (required by Vite 8 and TanStack Start)
 - npm (comes with Node)
+- **PHP 8+** with `pdo_sqlite` for the real database (`sudo apt install php-sqlite3` on Debian/Ubuntu)
 
-Check your version with:
+Check your version:
 
 ```bash
 node -v
 ```
 
-If you are on an older Node version, upgrade it (for example with [nvm](https://github.com/nvm-sh/nvm)):
+### Upgrade Node on WSL/Ubuntu (no nvm)
+
+The default `apt install nodejs` on Ubuntu often ships Node 18, which is **too old** for this project.
+Use [NodeSource](https://github.com/nodesource/distributions) to install Node 22 system-wide:
 
 ```bash
-nvm install 22
-nvm use 22
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs
+node -v   # should print v22.x
 ```
+
+Then reinstall dependencies (lockfile was built for a newer toolchain):
+
+```bash
+rm -rf node_modules
+npm install
+```
+
+> **Alternative:** [fnm](https://github.com/Schniz/fnm) is a lightweight version manager (not nvm) if you prefer per-project Node versions without replacing `/usr/bin/node`.
 
 ## Install
 
@@ -61,27 +74,38 @@ npm install
 
 ## Run the project (development)
 
-Start the dev server with hot reload:
+Start the React app **and** the PHP API in one command:
 
 ```bash
 npm run dev
 ```
 
-Then open the URL printed in the terminal (typically `http://localhost:3000`).
+Then open **http://localhost:3000** (Vite proxies `/api` to PHP on `:8080`).
+
+**Prerequisites:** PHP 8+ with `pdo_sqlite` (`sudo apt install php-sqlite3` on Debian/Ubuntu).
+
+Frontend only (no database): `npm run dev:web`
 
 ## Other scripts
 
 | Command | Description |
 | --- | --- |
-| `npm run dev` | Start the development server with hot reload |
+| `npm run dev` | React + PHP backend together |
+| `npm run dev:web` | Frontend only (client-side simulation fallback) |
 | `npm run build` | Create a production build |
 | `npm run preview` | Preview the production build locally |
 | `npm run lint` | Run ESLint |
 | `npm run format` | Format the codebase with Prettier |
+| `npm run backend` | PHP + SQLite API only (`http://localhost:8080`) |
+
+## PHP backend (real database)
+
+Login on `/vulnerable` or `/secure` hits the real SQLite database via `/api/*`. After a successful login, you are redirected to **Dashboard**.
 
 ## Project structure
 
 ```
+backend/         # PHP JSON API + SQLite (login endpoints for React)
 src/
   routes/        # File-based routes (one file per page) + __root.tsx app shell
   components/    # Shared UI components (Navbar, CodeBlock, ui/*)
