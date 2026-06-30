@@ -18,7 +18,10 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "backend": "php -S localhost:8080 -t backend backend/router.php"
+    "backend": "php -S localhost:8080 -t backend backend/router.php",
+    "test": "node scripts/static-security-check.mjs && php backend/tests/run-tests.php",
+    "test:static": "node scripts/static-security-check.mjs",
+    "test:dynamic": "php backend/tests/run-tests.php"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

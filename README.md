@@ -54,6 +54,14 @@ cd sql-guard-lab
 npm install && npm start
 ```
 
+### Verify (tests — requirement 7)
+
+```bash
+npm test
+```
+
+Full catalogue: **[docs/TESTING.md](docs/TESTING.md)**
+
 ### Demo login (real SQLite database)
 
 | Username | Password   | Page          |
@@ -106,6 +114,9 @@ SQLi bypass (vulnerable login only): on `/vulnerable`, username `' OR '1'='1' --
 | `npm run dev:web` | UI only (no database) |
 | `npm run build` | Production build |
 | `npm run backend` | PHP API only (`http://localhost:8080`) |
+| `npm test` | Static + dynamic security tests |
+| `npm run test:static` | Static code checks only |
+| `npm run test:dynamic` | TC-01…TC-16 against login handlers |
 
 ## Project structure
 
